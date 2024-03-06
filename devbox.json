@@ -1,0 +1,11 @@
+{
+  "packages": ["bun@latest", "lefthook@latest"],
+  "env": {
+    "ENV": "development",
+    "PORT": "3000",
+    "DO_NOT_TRACK": "1"
+  },
+  "shell": {
+    "init_hook": ["set -a && source \"$DEVBOX_PROJECT_ROOT/.env.local\" && set +a", "bun install"]
+  }
+}

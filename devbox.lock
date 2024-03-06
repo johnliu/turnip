@@ -1,0 +1,42 @@
+{
+  "lockfile_version": "1",
+  "packages": {
+    "bun@latest": {
+      "last_modified": "2024-02-26T19:46:43Z",
+      "resolved": "github:NixOS/nixpkgs/548a86b335d7ecd8b57ec617781f5e652ab0c38e#bun",
+      "source": "devbox-search",
+      "version": "1.0.29",
+      "systems": {
+        "aarch64-darwin": {
+          "store_path": "/nix/store/vasy23jzcpk4vahmb76gs550gz5ibp7s-bun-1.0.29"
+        },
+        "aarch64-linux": {
+          "store_path": "/nix/store/f669mpd7ini29ibwhvl7mi5d7vxpgvx3-bun-1.0.29"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/jk432rp4sfm9y912yy071cxdx30bbhvm-bun-1.0.29"
+        }
+      }
+    },
+    "lefthook@latest": {
+      "last_modified": "2024-02-27T03:14:15Z",
+      "resolved": "github:NixOS/nixpkgs/860a2c5921f100906d8c711d29a5f62bc283b588#lefthook",
+      "source": "devbox-search",
+      "version": "1.6.2",
+      "systems": {
+        "aarch64-darwin": {
+          "store_path": "/nix/store/rh9g53h79ax9d3s9h2xxc6mpqirn3rcl-lefthook-1.6.2"
+        },
+        "aarch64-linux": {
+          "store_path": "/nix/store/6f7i6xb23vhxmhrvzv6ki03jb1mv75q1-lefthook-1.6.2"
+        },
+        "x86_64-darwin": {
+          "store_path": "/nix/store/rhyvjwg4p68qqjqskq2jmxaj855n6cmb-lefthook-1.6.2"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/d2z5hh7kpblvmmxhynmgn5i17dwk4d16-lefthook-1.6.2"
+        }
+      }
+    }
+  }
+}

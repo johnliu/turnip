@@ -1,0 +1,24 @@
+{
+  "name": "turnip",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@biomejs/biome": "1.5.3",
+    "@types/bun": "latest",
+    "discord-api-types": "^0.37.70"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "discord-interactions": "^3.4.0",
+    "hono": "^4.0.10",
+    "postgres": "^3.4.3"
+  },
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "scripts": "bun run src/scripts.ts",
+    "check": "bun biome check .",
+    "postinstall": "lefthook install"
+  }
+}
