@@ -1,29 +1,45 @@
 import {
   type APIApplicationCommandInteraction,
+  type APIChatInputApplicationCommandInteraction,
   type APIChatInputApplicationCommandInteractionData,
   type APIInteraction,
+  type APIMessageApplicationCommandInteraction,
   type APIUserApplicationCommandInteraction,
   InteractionType,
 } from 'discord-api-types/v10';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { logger } from 'hono/logger';
+import { first } from 'radash';
 
 import handleFact from '@/interactions/fact';
-import handleGive from '@/interactions/give';
+import { handleGiveChatInput, handleGiveMessage, handleGiveUser } from '@/interactions/give';
 import handlePing from '@/interactions/ping';
 import { verifyKeyMiddleware } from '@/utils';
 
 const app = new Hono();
-app.use('/', verifyKeyMiddleware);
+app.use(logger());
+app.use(verifyKeyMiddleware);
 
 function handleCommand(body: APIApplicationCommandInteraction) {
-  const { data } = body;
+  switch (body.data.name) {
+    case 'turnip': {
+      const data = body.data as APIChatInputApplicationCommandInteractionData;
+      const subcommand = first(data.options ?? [])?.name;
 
-  switch (data.name) {
-    case 'turnip-facts':
-      return handleFact(data as APIChatInputApplicationCommandInteractionData);
+      switch (subcommand) {
+        case 'fact':
+          return handleFact(data);
+        case 'give':
+          return handleGiveChatInput(body as APIChatInputApplicationCommandInteraction);
+        default:
+          throw new HTTPException(400);
+      }
+    }
+    case 'Give Turnip to User':
+      return handleGiveMessage(body as APIMessageApplicationCommandInteraction);
     case 'Give Turnip':
-      return handleGive(body as APIUserApplicationCommandInteraction);
+      return handleGiveUser(body as APIUserApplicationCommandInteraction);
     default:
       throw new HTTPException(400);
   }

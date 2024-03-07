@@ -1,5 +1,5 @@
 import { parseArgs } from 'util';
-import { ApplicationCommandType, Routes } from 'discord-api-types/v10';
+import { ApplicationCommandOptionType, ApplicationCommandType, RouteBases, Routes } from 'discord-api-types/v10';
 
 import { ApplicationIntegrationTypes, IntegrationContextType } from '@/constants';
 
@@ -13,9 +13,22 @@ async function registerCommands() {
       type: ApplicationCommandType.ChatInput,
       options: [
         {
-          type: 1,
           name: 'fact',
           description: 'Get a fact about turnips.',
+          type: ApplicationCommandOptionType.Subcommand,
+        },
+
+        {
+          name: 'give',
+          description: 'Give a turnip to someone.',
+          type: ApplicationCommandOptionType.Subcommand,
+          options: [
+            {
+              name: 'user',
+              description: 'The user to give the turnip to.',
+              type: ApplicationCommandOptionType.User,
+            },
+          ],
         },
       ],
     },
@@ -26,24 +39,40 @@ async function registerCommands() {
       contexts: [IntegrationContextType.Guild, IntegrationContextType.BotDM, IntegrationContextType.PrivateChannel],
       type: ApplicationCommandType.User,
     },
+
+    {
+      name: 'Give Turnip to User',
+      integration_types: [ApplicationIntegrationTypes.UserInstall],
+      contexts: [IntegrationContextType.Guild, IntegrationContextType.BotDM, IntegrationContextType.PrivateChannel],
+      type: ApplicationCommandType.Message,
+    },
   ];
 
-  await fetch(Routes.applicationCommands(Bun.env.APPLICATION_ID), {
+  const request = {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bot ${Bun.env.BOT_TOKEN}`,
     },
-    body: JSON.stringify(commands),
+    body: commands,
+  };
+
+  console.log('Request:', Bun.inspect(request));
+  const response = await fetch(RouteBases.api + Routes.applicationCommands(Bun.env.APPLICATION_ID), {
+    ...request,
+    body: JSON.stringify(request.body),
   });
+
+  console.log('Response:', Bun.inspect({ body: await response.json() }));
 }
 
-const { positionals } = parseArgs({ args: Bun.argv, allowPositionals: true });
+const { positionals } = parseArgs({ args: Bun.argv.slice(2), allowPositionals: true });
 switch (positionals[0]) {
   case 'register-commands': {
     registerCommands();
     break;
   }
   default:
+    console.error('Invalid command.');
     break;
 }
