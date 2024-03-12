@@ -1,6 +1,6 @@
-import { verifyKey } from 'discord-interactions';
-import { createFactory } from 'hono/factory';
-import { HTTPException } from 'hono/http-exception';
+import { createFactory } from 'hono/helper.ts';
+import { HTTPException } from 'hono/mod.ts';
+import { verifyKey } from 'npm:discord-interactions';
 
 const factory = createFactory();
 
@@ -12,7 +12,8 @@ const verifyKeyMiddleware = factory.createMiddleware(async (c, next) => {
     body = JSON.stringify(await c.req.json());
   }
 
-  if (signature == null || timestamp == null || !verifyKey(body, signature, timestamp, Bun.env.BOT_PUBLIC_KEY)) {
+  const publicKey = assertNotNull(Deno.env.get('BOT_PUBLIC_KEY'));
+  if (signature == null || timestamp == null || !verifyKey(body, signature, timestamp, publicKey)) {
     throw new HTTPException(401);
   }
 

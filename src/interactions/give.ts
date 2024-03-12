@@ -6,15 +6,15 @@ import {
   type APIMessageApplicationCommandInteraction,
   type APIUserApplicationCommandInteraction,
   InteractionResponseType,
-} from 'discord-api-types/v10';
-import { first } from 'radash';
+} from 'discord-api-types';
+import { first } from 'npm:radash';
 
-import { assertNotNull } from '@/utils';
+import { assertNotNull } from '@/utils.ts';
 
 function handleGive(senderId: string, receiverId: string): APIInteractionResponseChannelMessageWithSource {
   const content = (() => {
     switch (receiverId) {
-      case Bun.env.APPLICATION_ID:
+      case Deno.env.get('APPLICATION_ID'):
         return `Aw thanks <@${senderId}>, but you can't give this turnip back to me.`;
       case senderId:
         return `Silly <@${senderId}>, you can't give a turnip to yourself!`;

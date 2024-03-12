@@ -176,3 +176,6 @@ dist
 
 # Devbox
 .devbox/
+
+# Deno
+.deno/

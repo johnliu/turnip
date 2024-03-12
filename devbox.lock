@@ -1,23 +1,6 @@
 {
   "lockfile_version": "1",
   "packages": {
-    "bun@latest": {
-      "last_modified": "2024-02-26T19:46:43Z",
-      "resolved": "github:NixOS/nixpkgs/548a86b335d7ecd8b57ec617781f5e652ab0c38e#bun",
-      "source": "devbox-search",
-      "version": "1.0.29",
-      "systems": {
-        "aarch64-darwin": {
-          "store_path": "/nix/store/vasy23jzcpk4vahmb76gs550gz5ibp7s-bun-1.0.29"
-        },
-        "aarch64-linux": {
-          "store_path": "/nix/store/f669mpd7ini29ibwhvl7mi5d7vxpgvx3-bun-1.0.29"
-        },
-        "x86_64-linux": {
-          "store_path": "/nix/store/jk432rp4sfm9y912yy071cxdx30bbhvm-bun-1.0.29"
-        }
-      }
-    },
     "cloudflared@latest": {
       "last_modified": "2024-02-26T10:27:36Z",
       "resolved": "github:NixOS/nixpkgs/fcea2b6260dd566c28c894b4207a5f2b56c2cba3#cloudflared",
@@ -35,6 +18,26 @@
         },
         "x86_64-linux": {
           "store_path": "/nix/store/hyn7ls3wvdlgll1czqpgidd27klmx5z5-cloudflared-2024.2.1"
+        }
+      }
+    },
+    "deno@latest": {
+      "last_modified": "2024-02-24T23:06:34Z",
+      "resolved": "github:NixOS/nixpkgs/9a9dae8f6319600fa9aebde37f340975cab4b8c0#deno",
+      "source": "devbox-search",
+      "version": "1.40.5",
+      "systems": {
+        "aarch64-darwin": {
+          "store_path": "/nix/store/pg6jrk1rbs4yb6cscllw4mvf13cxxiv3-deno-1.40.5"
+        },
+        "aarch64-linux": {
+          "store_path": "/nix/store/4p6qg8smnpksm47xa5rcv0iz655kilml-deno-1.40.5"
+        },
+        "x86_64-darwin": {
+          "store_path": "/nix/store/9wq9vik9f5bjwhp37dwbw5pmk5jyz86j-deno-1.40.5"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/pa7b1np3zwiqn4rafps2dbpsh273b8sn-deno-1.40.5"
         }
       }
     },

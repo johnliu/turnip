@@ -1,4 +1,4 @@
-import { type APIInteractionResponsePong, InteractionResponseType } from 'discord-api-types/v10';
+import { type APIInteractionResponsePong, InteractionResponseType } from 'discord-api-types';
 
 export default function handlePing(): APIInteractionResponsePong {
   return {

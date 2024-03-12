@@ -6,16 +6,15 @@ import {
   type APIMessageApplicationCommandInteraction,
   type APIUserApplicationCommandInteraction,
   InteractionType,
-} from 'discord-api-types/v10';
-import { Hono } from 'hono';
-import { HTTPException } from 'hono/http-exception';
-import { logger } from 'hono/logger';
-import { first } from 'radash';
+} from 'discord-api-types';
+import { logger } from 'hono/middleware.ts';
+import { Hono, HTTPException } from 'hono/mod.ts';
+import { first } from 'npm:radash';
 
-import handleFact from '@/interactions/fact';
-import { handleGiveChatInput, handleGiveMessage, handleGiveUser } from '@/interactions/give';
-import handlePing from '@/interactions/ping';
-import { verifyKeyMiddleware } from '@/utils';
+import handleFact from '@/interactions/fact.ts';
+import { handleGiveChatInput, handleGiveMessage, handleGiveUser } from '@/interactions/give.ts';
+import handlePing from '@/interactions/ping.ts';
+import { verifyKeyMiddleware } from '@/utils.ts';
 
 const app = new Hono();
 app.use(logger());
@@ -62,4 +61,4 @@ app.post('/', async (c) => {
   return c.json(handleInteraction(await c.req.json()));
 });
 
-export default app;
+Deno.serve({ port: parseInt(Deno.env.get('PORT') ?? '3000') }, app.fetch);

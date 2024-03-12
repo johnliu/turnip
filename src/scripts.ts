@@ -1,20 +1,21 @@
-import { parseArgs } from 'util';
 import {
   type APIApplicationCommand as APIApplicationCommandOld,
   ApplicationCommandOptionType,
   ApplicationCommandType,
   RouteBases,
   Routes,
-} from 'discord-api-types/v10';
+} from 'discord-api-types';
+import { inspect, parseArgs } from 'node:util';
 
-import { ApplicationIntegrationType, IntegrationContextType } from '@/constants';
+import { ApplicationIntegrationType, IntegrationContextType } from '@/constants.ts';
+import { assertNotNull } from '@/utils.ts';
 
 type APIApplicationCommand =
   | APIApplicationCommandOld
   | {
-      integration_types?: ApplicationIntegrationType[];
-      contexts?: IntegrationContextType[];
-    };
+    integration_types?: ApplicationIntegrationType[];
+    contexts?: IntegrationContextType[];
+  };
 
 async function registerCommands() {
   const commands: APIApplicationCommand[] = [
@@ -66,21 +67,22 @@ async function registerCommands() {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bot ${Bun.env.BOT_TOKEN}`,
+      Authorization: `Bot ${Deno.env.get('BOT_TOKEN')}`,
     },
     body: commands,
   };
 
-  console.log('Request:', Bun.inspect(request));
-  const response = await fetch(RouteBases.api + Routes.applicationCommands(Bun.env.APPLICATION_ID), {
+  console.log('Request:', inspect(request));
+  const applicationId = assertNotNull(Deno.env.get('APPLICATION_ID'));
+  const response = await fetch(RouteBases.api + Routes.applicationCommands(applicationId), {
     ...request,
     body: JSON.stringify(request.body),
   });
 
-  console.log('Response:', Bun.inspect({ body: await response.json() }));
+  console.log('Response:', inspect({ body: await response.json() }));
 }
 
-const { positionals } = parseArgs({ args: Bun.argv.slice(2), allowPositionals: true });
+const { positionals } = parseArgs({ args: Deno.args, allowPositionals: true });
 switch (positionals[0]) {
   case 'register-commands': {
     registerCommands();
