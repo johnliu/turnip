@@ -1,4 +1,4 @@
-export enum ApplicationIntegrationTypes {
+export enum ApplicationIntegrationType {
   GuildInstall = 0,
   UserInstall = 1,
 }

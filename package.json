@@ -13,7 +13,6 @@
   "dependencies": {
     "discord-interactions": "^3.4.0",
     "hono": "^4.0.10",
-    "postgres": "^3.4.3",
     "radash": "^12.0.0"
   },
   "scripts": {

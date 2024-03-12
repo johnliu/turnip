@@ -1,14 +1,27 @@
 import { parseArgs } from 'util';
-import { ApplicationCommandOptionType, ApplicationCommandType, RouteBases, Routes } from 'discord-api-types/v10';
+import {
+  type APIApplicationCommand as APIApplicationCommandOld,
+  ApplicationCommandOptionType,
+  ApplicationCommandType,
+  RouteBases,
+  Routes,
+} from 'discord-api-types/v10';
 
-import { ApplicationIntegrationTypes, IntegrationContextType } from '@/constants';
+import { ApplicationIntegrationType, IntegrationContextType } from '@/constants';
+
+type APIApplicationCommand =
+  | APIApplicationCommandOld
+  | {
+      integration_types?: ApplicationIntegrationType[];
+      contexts?: IntegrationContextType[];
+    };
 
 async function registerCommands() {
-  const commands = [
+  const commands: APIApplicationCommand[] = [
     {
       name: 'turnip',
       description: 'Turnip commands.',
-      integration_types: [ApplicationIntegrationTypes.UserInstall],
+      integration_types: [ApplicationIntegrationType.UserInstall],
       contexts: [IntegrationContextType.Guild, IntegrationContextType.BotDM, IntegrationContextType.PrivateChannel],
       type: ApplicationCommandType.ChatInput,
       options: [
@@ -27,6 +40,7 @@ async function registerCommands() {
               name: 'user',
               description: 'The user to give the turnip to.',
               type: ApplicationCommandOptionType.User,
+              required: true,
             },
           ],
         },
@@ -35,14 +49,14 @@ async function registerCommands() {
 
     {
       name: 'Give Turnip',
-      integration_types: [ApplicationIntegrationTypes.UserInstall],
+      integration_types: [ApplicationIntegrationType.UserInstall],
       contexts: [IntegrationContextType.Guild, IntegrationContextType.BotDM, IntegrationContextType.PrivateChannel],
       type: ApplicationCommandType.User,
     },
 
     {
       name: 'Give Turnip to User',
-      integration_types: [ApplicationIntegrationTypes.UserInstall],
+      integration_types: [ApplicationIntegrationType.UserInstall],
       contexts: [IntegrationContextType.Guild, IntegrationContextType.BotDM, IntegrationContextType.PrivateChannel],
       type: ApplicationCommandType.Message,
     },
