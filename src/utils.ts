@@ -1,10 +1,8 @@
-import { createFactory } from 'hono/helper.ts';
-import { HTTPException } from 'hono/mod.ts';
-import { verifyKey } from 'npm:discord-interactions';
+import { verifyKey } from 'discord-interactions';
+import type { MiddlewareHandler } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 
-const factory = createFactory();
-
-const verifyKeyMiddleware = factory.createMiddleware(async (c, next) => {
+export const verifyKeyMiddleware: MiddlewareHandler = async (c, next) => {
   const signature = c.req.header('X-Signature-Ed25519');
   const timestamp = c.req.header('X-Signature-Timestamp');
   let body = '';
@@ -12,13 +10,12 @@ const verifyKeyMiddleware = factory.createMiddleware(async (c, next) => {
     body = JSON.stringify(await c.req.json());
   }
 
-  const publicKey = assertNotNull(Deno.env.get('BOT_PUBLIC_KEY'));
-  if (signature == null || timestamp == null || !verifyKey(body, signature, timestamp, publicKey)) {
+  if (signature == null || timestamp == null || !verifyKey(body, signature, timestamp, c.env.DISCORD_PUBLIC_KEY)) {
     throw new HTTPException(401);
   }
 
   await next();
-});
+};
 
 export function assertNotNull<T>(value: T | null | undefined): T {
   if (value == null) {
@@ -27,4 +24,6 @@ export function assertNotNull<T>(value: T | null | undefined): T {
   return value;
 }
 
-export { verifyKeyMiddleware };
+export function first<T>(array: T[] | null | undefined): T | undefined {
+  return array != null && array.length > 0 ? array[0] : undefined;
+}

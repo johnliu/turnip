@@ -1,8 +1,4 @@
-import {
-  type APIChatInputApplicationCommandInteractionData,
-  type APIInteractionResponseChannelMessageWithSource,
-  InteractionResponseType,
-} from 'discord-api-types';
+import { type APIInteractionResponseChannelMessageWithSource, InteractionResponseType } from 'discord-api-types/v10';
 
 const TURNIP_FACTS = [
   'Turnips are a root vegetable commonly grown in temperate climates worldwide for their white, bulbous taproot.',
@@ -27,9 +23,7 @@ const TURNIP_FACTS = [
   "Despite their name, turnips are not a primary ingredient in the traditional British dish 'turnip cake,' which is actually made from radishes.",
 ];
 
-export default function handleFact(
-  _data: APIChatInputApplicationCommandInteractionData,
-): APIInteractionResponseChannelMessageWithSource {
+export default function handleFact(): APIInteractionResponseChannelMessageWithSource {
   const randomFact = TURNIP_FACTS[Math.floor(Math.random() * TURNIP_FACTS.length)];
 
   return {

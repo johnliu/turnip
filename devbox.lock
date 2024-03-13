@@ -1,6 +1,23 @@
 {
   "lockfile_version": "1",
   "packages": {
+    "bun@latest": {
+      "last_modified": "2024-03-17T18:53:16Z",
+      "resolved": "github:NixOS/nixpkgs/34ad8c9f29a18b4dd97a9ad40ceb16954f24afe7#bun",
+      "source": "devbox-search",
+      "version": "1.0.31",
+      "systems": {
+        "aarch64-darwin": {
+          "store_path": "/nix/store/sdphbka98lv9xhnqa7m200ws09wvjaad-bun-1.0.31"
+        },
+        "aarch64-linux": {
+          "store_path": "/nix/store/ycdyk351i7lqqcfavis9fjd7350ihz34-bun-1.0.31"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/ds5wdcj15h2l4bnnpmrfmv4dh29f18w3-bun-1.0.31"
+        }
+      }
+    },
     "cloudflared@latest": {
       "last_modified": "2024-02-26T10:27:36Z",
       "resolved": "github:NixOS/nixpkgs/fcea2b6260dd566c28c894b4207a5f2b56c2cba3#cloudflared",
@@ -21,26 +38,6 @@
         }
       }
     },
-    "deno@latest": {
-      "last_modified": "2024-02-24T23:06:34Z",
-      "resolved": "github:NixOS/nixpkgs/9a9dae8f6319600fa9aebde37f340975cab4b8c0#deno",
-      "source": "devbox-search",
-      "version": "1.40.5",
-      "systems": {
-        "aarch64-darwin": {
-          "store_path": "/nix/store/pg6jrk1rbs4yb6cscllw4mvf13cxxiv3-deno-1.40.5"
-        },
-        "aarch64-linux": {
-          "store_path": "/nix/store/4p6qg8smnpksm47xa5rcv0iz655kilml-deno-1.40.5"
-        },
-        "x86_64-darwin": {
-          "store_path": "/nix/store/9wq9vik9f5bjwhp37dwbw5pmk5jyz86j-deno-1.40.5"
-        },
-        "x86_64-linux": {
-          "store_path": "/nix/store/pa7b1np3zwiqn4rafps2dbpsh273b8sn-deno-1.40.5"
-        }
-      }
-    },
     "lefthook@latest": {
       "last_modified": "2024-02-27T03:14:15Z",
       "resolved": "github:NixOS/nixpkgs/860a2c5921f100906d8c711d29a5f62bc283b588#lefthook",
@@ -58,6 +55,26 @@
         },
         "x86_64-linux": {
           "store_path": "/nix/store/d2z5hh7kpblvmmxhynmgn5i17dwk4d16-lefthook-1.6.2"
+        }
+      }
+    },
+    "nodejs@latest": {
+      "last_modified": "2024-03-09T07:11:56Z",
+      "resolved": "github:NixOS/nixpkgs/0e7f98a5f30166cbed344569426850b21e4091d4#nodejs_21",
+      "source": "devbox-search",
+      "version": "21.7.1",
+      "systems": {
+        "aarch64-darwin": {
+          "store_path": "/nix/store/mh1db6rni4mlcr473sh3fy6jg2m38jvg-nodejs-21.7.1"
+        },
+        "aarch64-linux": {
+          "store_path": "/nix/store/ziyb3ny5f9hcwp0lsb9gwdv1pqsn03x1-nodejs-21.7.1"
+        },
+        "x86_64-darwin": {
+          "store_path": "/nix/store/0zaa3aarbsj38g62ihv94gz2hgvgh6bc-nodejs-21.7.1"
+        },
+        "x86_64-linux": {
+          "store_path": "/nix/store/4arhczh30ychpx6h2wpj5nhx39wm0nla-nodejs-21.7.1"
         }
       }
     }

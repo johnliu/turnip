@@ -6,22 +6,27 @@ import {
   type APIMessageApplicationCommandInteraction,
   type APIUserApplicationCommandInteraction,
   InteractionResponseType,
-} from 'discord-api-types';
-import { first } from 'npm:radash';
+} from 'discord-api-types/v10';
 
-import { assertNotNull } from '@/utils.ts';
+import type { Bindings } from '@/constants';
+import { UserTurnipQueries } from '@/models/turnips';
+import { assertNotNull, first } from '@/utils';
 
-function handleGive(senderId: string, receiverId: string): APIInteractionResponseChannelMessageWithSource {
-  const content = (() => {
-    switch (receiverId) {
-      case Deno.env.get('APPLICATION_ID'):
-        return `Aw thanks <@${senderId}>, but you can't give this turnip back to me.`;
-      case senderId:
-        return `Silly <@${senderId}>, you can't give a turnip to yourself!`;
-      default:
-        return `<@${senderId}> gave a turnip to you <@${receiverId}>`;
-    }
-  })();
+async function handleGive(
+  env: Bindings,
+  senderId: string,
+  receiverId: string,
+): Promise<APIInteractionResponseChannelMessageWithSource> {
+  let content = null;
+  if (receiverId === env.DISCORD_APPLICATION_ID) {
+    content = `Aw thanks <@${senderId}>, but you can't give this turnip back to me.`;
+  } else if (receiverId === senderId) {
+    content = `Silly <@${senderId}>, you can't give a turnip to yourself!`;
+  } else if (await UserTurnipQueries.giveTurnip(env.db, senderId, receiverId)) {
+    content = `<@${senderId}> gave a turnip to you <@${receiverId}>`;
+  } else {
+    content = `Sorry <@${senderId}>, looks like I didn't have any turnips in stock to give. Try again later.`;
+  }
 
   return {
     type: InteractionResponseType.ChannelMessageWithSource,
@@ -31,25 +36,32 @@ function handleGive(senderId: string, receiverId: string): APIInteractionRespons
   };
 }
 
-export function handleGiveChatInput({ data, member, user }: APIChatInputApplicationCommandInteraction) {
+export async function handleGiveChatInput(
+  { data, member, user }: APIChatInputApplicationCommandInteraction,
+  env: Bindings,
+) {
   const senderId = assertNotNull(member?.user.id ?? user?.id);
 
-  const subcommand = first(data.options ?? []) as APIApplicationCommandInteractionDataSubcommandOption | undefined;
-  const receiver = first(subcommand?.options ?? []) as APIApplicationCommandInteractionDataUserOption | undefined;
+  const subcommand = first(data.options) as APIApplicationCommandInteractionDataSubcommandOption | undefined;
+  const receiver = first(subcommand?.options) as APIApplicationCommandInteractionDataUserOption | undefined;
   const receiverId = assertNotNull(receiver?.value);
 
-  return handleGive(senderId, receiverId);
+  return await handleGive(env, senderId, receiverId);
 }
 
-export function handleGiveMessage({ data, member, user }: APIMessageApplicationCommandInteraction) {
+export async function handleGiveMessage(
+  { data, member, user }: APIMessageApplicationCommandInteraction,
+  env: Bindings,
+) {
   const senderId = assertNotNull(member?.user.id ?? user?.id);
   const receiverId = data.resolved.messages[data.target_id].author.id;
 
-  return handleGive(senderId, receiverId);
+  return await handleGive(env, senderId, receiverId);
 }
 
-export function handleGiveUser({ data, member, user }: APIUserApplicationCommandInteraction) {
+export async function handleGiveUser({ data, member, user }: APIUserApplicationCommandInteraction, env: Bindings) {
   const senderId = assertNotNull(member?.user.id ?? user?.id);
   const receiverId = data.target_id;
-  return handleGive(senderId, receiverId);
+
+  return await handleGive(env, senderId, receiverId);
 }

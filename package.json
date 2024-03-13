@@ -1,0 +1,27 @@
+{
+  "name": "turnip",
+  "type": "module",
+  "module": "src/index.ts",
+  "devDependencies": {
+    "@biomejs/biome": "1.6.1",
+    "@cloudflare/workers-types": "^4.20240314.0",
+    "@types/humanize-duration": "^3.27.4",
+    "discord-api-types": "^0.37.75",
+    "wrangler": "^3.34.2"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "discord-interactions": "^3.4.0",
+    "hono": "^4.1.2",
+    "humanize-duration": "^3.31.0"
+  },
+  "scripts": {
+    "deploy": "npx wrangler deploy",
+    "dev": "npx wrangler dev",
+    "tunnel": "cloudflared tunnel --url localhost:3000",
+    "check": "bun biome check .",
+    "scripts": "bun run src/scripts/index.ts"
+  }
+}
