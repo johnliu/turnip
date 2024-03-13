@@ -1,0 +1,29 @@
+{
+  "$schema": "https://raw.githubusercontent.com/skymethod/denoflare/v0.6.0/common/config.schema.json",
+  "scripts": {
+    "turnip": {
+      "path": "src/index.ts",
+      "localPort": 3000,
+      "bindings": {
+        "db": {
+          "d1DatabaseUuid": "${env:CF_D1_UUID}"
+        },
+        "DISCORD_APPLICATION_ID": {
+          "value": "${env:DISCORD_APPLICATION_ID}"
+        },
+        "DISCORD_PUBLIC_KEY": {
+          "secret": "${env:DISCORD_PUBLIC_KEY}"
+        },
+        "DISCORD_BOT_TOKEN": {
+          "secret": "${env:DISCORD_BOT_TOKEN}"
+        }
+      }
+    }
+  },
+  "profiles": {
+    "default": {
+      "accountId": "${env:CF_ACCOUNT_ID}",
+      "apiToken": "${env:CF_API_TOKEN}"
+    }
+  }
+}

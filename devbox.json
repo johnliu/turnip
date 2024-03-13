@@ -7,15 +7,13 @@
   "env": {
     "DENO_DIR": ".deno/cache/",
     "DENO_INSTALL_ROOT": ".devbox/root/",
-    "ENV": "development",
-    "PORT": "3000",
     "DO_NOT_TRACK": "1"
   },
   "shell": {
     "init_hook": [
-      "set -a && source \"$DEVBOX_PROJECT_ROOT/.env.local\" && set +a",
+      "set -a && source \"$DEVBOX_PROJECT_ROOT/.env.${ENV:-development}\" && set +a",
       "export PATH=$DEVBOX_PROJECT_ROOT/$DENO_INSTALL_ROOT/bin:$PATH",
-      "deno install --unstable-worker-options --allow-read --allow-net --allow-env --allow-run --name denoflare --force https://raw.githubusercontent.com/skymethod/denoflare/v0.6.0/cli/cli.ts",
+      "deno install --unstable-worker-options --allow-read --allow-net --allow-env --allow-run --allow-write --name denoflare --force https://raw.githubusercontent.com/skymethod/denoflare/v0.6.0/cli/cli.ts",
       "lefthook install"
     ]
   }

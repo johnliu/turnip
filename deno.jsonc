@@ -1,17 +1,20 @@
 {
   "imports": {
     "@/": "./src/",
+    "$std/": "https://deno.land/std@0.219.1/",
     "hono/": "https://deno.land/x/hono@v4.1.0/",
-    "discord-api-types": "https://deno.land/x/discord_api_types@0.37.73/v10.ts"
+    "discord-api-types": "https://deno.land/x/discord_api_types@0.37.73/v10.ts",
+    "cloudflare/worker-types": "https://cdn.skypack.dev/-/@cloudflare/workers-types@v4.20240312.0-itlLZMArLMxw6lO51Fm1/dist=es2019,mode=raw/experimental/index.ts",
+    "discord-interactions": "https://cdn.skypack.dev/discord-interactions"
   },
   "fmt": {
     "lineWidth": 120,
     "singleQuote": true
   },
   "tasks": {
-    "dev": "deno run -A --watch src/index.ts",
-    "scripts": "deno run -A src/scripts.ts",
-    "check": "deno run -A npm:@biomejs/biome check ."
+    "dev": "denoflare serve turnip",
+    "tunnel": "cloudflared tunnel --url localhost:3000",
+    "scripts": "deno run -A src/scripts/index.ts"
   },
   "exclude": [
     ".devbox/",

@@ -1,23 +1,22 @@
 import {
-  type APIApplicationCommand as APIApplicationCommandOld,
+  type APIApplicationCommand as APIApplicationCommandBase,
   ApplicationCommandOptionType,
   ApplicationCommandType,
-  RouteBases,
   Routes,
 } from 'discord-api-types';
-import { inspect, parseArgs } from 'node:util';
 
 import { ApplicationIntegrationType, IntegrationContextType } from '@/constants.ts';
+import { request } from '@/scripts/lib.ts';
 import { assertNotNull } from '@/utils.ts';
 
 type APIApplicationCommand =
-  | APIApplicationCommandOld
+  | APIApplicationCommandBase
   | {
     integration_types?: ApplicationIntegrationType[];
     contexts?: IntegrationContextType[];
   };
 
-async function registerCommands() {
+export async function updateCommands() {
   const commands: APIApplicationCommand[] = [
     {
       name: 'turnip',
@@ -49,6 +48,14 @@ async function registerCommands() {
     },
 
     {
+      name: 'inventory',
+      description: 'See how many turnips you have.',
+      integration_types: [ApplicationIntegrationType.UserInstall],
+      contexts: [IntegrationContextType.Guild, IntegrationContextType.BotDM, IntegrationContextType.PrivateChannel],
+      type: ApplicationCommandType.ChatInput,
+    },
+
+    {
       name: 'Give Turnip',
       integration_types: [ApplicationIntegrationType.UserInstall],
       contexts: [IntegrationContextType.Guild, IntegrationContextType.BotDM, IntegrationContextType.PrivateChannel],
@@ -63,32 +70,9 @@ async function registerCommands() {
     },
   ];
 
-  const request = {
+  await request({
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bot ${Deno.env.get('BOT_TOKEN')}`,
-    },
+    path: Routes.applicationCommands(assertNotNull(Deno.env.get('DISCORD_APPLICATION_ID'))),
     body: commands,
-  };
-
-  console.log('Request:', inspect(request));
-  const applicationId = assertNotNull(Deno.env.get('APPLICATION_ID'));
-  const response = await fetch(RouteBases.api + Routes.applicationCommands(applicationId), {
-    ...request,
-    body: JSON.stringify(request.body),
   });
-
-  console.log('Response:', inspect({ body: await response.json() }));
-}
-
-const { positionals } = parseArgs({ args: Deno.args, allowPositionals: true });
-switch (positionals[0]) {
-  case 'register-commands': {
-    registerCommands();
-    break;
-  }
-  default:
-    console.error('Invalid command.');
-    break;
 }

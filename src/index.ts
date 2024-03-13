@@ -7,58 +7,59 @@ import {
   type APIUserApplicationCommandInteraction,
   InteractionType,
 } from 'discord-api-types';
-import { logger } from 'hono/middleware.ts';
 import { Hono, HTTPException } from 'hono/mod.ts';
-import { first } from 'npm:radash';
 
+import { Bindings } from '@/constants.ts';
 import handleFact from '@/interactions/fact.ts';
 import { handleGiveChatInput, handleGiveMessage, handleGiveUser } from '@/interactions/give.ts';
+import { handleInventory } from '@/interactions/inventory.ts';
 import handlePing from '@/interactions/ping.ts';
-import { verifyKeyMiddleware } from '@/utils.ts';
+import { first, verifyKeyMiddleware } from '@/utils.ts';
 
-const app = new Hono();
-app.use(logger());
+const app = new Hono<{ Bindings: Bindings }>();
 app.use(verifyKeyMiddleware);
 
-function handleCommand(body: APIApplicationCommandInteraction) {
+async function handleCommand(body: APIApplicationCommandInteraction, env: Bindings) {
   switch (body.data.name) {
     case 'turnip': {
       const data = body.data as APIChatInputApplicationCommandInteractionData;
-      const subcommand = first(data.options ?? [])?.name;
+      const subcommand = first(data.options)?.name;
 
       switch (subcommand) {
         case 'fact':
           return handleFact(data);
         case 'give':
-          return handleGiveChatInput(body as APIChatInputApplicationCommandInteraction);
+          return await handleGiveChatInput(body as APIChatInputApplicationCommandInteraction, env);
         default:
           throw new HTTPException(400);
       }
     }
+    case 'inventory':
+      return await handleInventory(body as APIChatInputApplicationCommandInteraction, env);
     case 'Give Turnip to User':
-      return handleGiveMessage(body as APIMessageApplicationCommandInteraction);
+      return await handleGiveMessage(body as APIMessageApplicationCommandInteraction, env);
     case 'Give Turnip':
-      return handleGiveUser(body as APIUserApplicationCommandInteraction);
+      return await handleGiveUser(body as APIUserApplicationCommandInteraction, env);
     default:
       throw new HTTPException(400);
   }
 }
 
-function handleInteraction(body: APIInteraction) {
+async function handleInteraction(body: APIInteraction, env: Bindings) {
   const { type } = body;
 
   switch (type) {
     case InteractionType.Ping:
       return handlePing();
     case InteractionType.ApplicationCommand:
-      return handleCommand(body);
+      return await handleCommand(body, env);
     default:
       throw new HTTPException(400);
   }
 }
 
 app.post('/', async (c) => {
-  return c.json(handleInteraction(await c.req.json()));
+  return c.json(await handleInteraction(await c.req.json(), c.env));
 });
 
-Deno.serve({ port: parseInt(Deno.env.get('PORT') ?? '3000') }, app.fetch);
+export default app;
