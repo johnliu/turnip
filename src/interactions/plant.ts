@@ -1,4 +1,8 @@
-import { type APIChatInputApplicationCommandInteraction, InteractionResponseType } from 'discord-api-types/v10';
+import {
+  type APIChatInputApplicationCommandInteraction,
+  InteractionResponseType,
+  MessageFlags,
+} from 'discord-api-types/v10';
 import humanizeDuration from 'humanize-duration';
 
 import type { Bindings } from '@/constants';
@@ -9,9 +13,9 @@ export async function handlePlant({ guild_id, member }: APIChatInputApplicationC
   const guildId = assertNotNull(guild_id);
   const userId = assertNotNull(member?.user?.id);
   const success = await GuildTurnipQueries.plantTurnip(env.db, guildId, userId);
-  const { userTotal, guildTotal } = await GuildTurnipQueries.surveyTurnips(env.db, guildId, userId);
 
   let content = null;
+  let flags = 0;
   if (success) {
     const { userTotal, guildTotal } = await GuildTurnipQueries.surveyTurnips(env.db, guildId, userId);
     content = `You planted a turnip in this server! There are ${guildTotal} turnips in this server. You contributed ${userTotal} turnips.`;
@@ -23,12 +27,14 @@ export async function handlePlant({ guild_id, member }: APIChatInputApplicationC
     const durationString =
       remainingDuration > 1000 * 60 ? humanizeDuration(remainingDuration, { units: ['h', 'm'], round: true }) : 'a bit';
     content = `You planted a turnip too recently! Try again in ${durationString}.`;
+    flags = MessageFlags.Ephemeral;
   }
 
   return {
     type: InteractionResponseType.ChannelMessageWithSource,
     data: {
       content,
+      flags,
     },
   };
 }

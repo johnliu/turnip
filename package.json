@@ -5,6 +5,7 @@
   "devDependencies": {
     "@biomejs/biome": "1.6.1",
     "@cloudflare/workers-types": "^4.20240314.0",
+    "@types/bun": "^1.0.10",
     "@types/humanize-duration": "^3.27.4",
     "discord-api-types": "^0.37.75",
     "wrangler": "^3.34.2"
@@ -18,8 +19,9 @@
     "humanize-duration": "^3.31.0"
   },
   "scripts": {
-    "deploy": "npx wrangler deploy",
-    "dev": "npx wrangler dev",
+    "deploy": "bun wrangler deploy",
+    "migrations": "bun wrangler d1 migrations apply turnip",
+    "dev": "bun wrangler dev",
     "tunnel": "cloudflared tunnel --url localhost:3000",
     "check": "bun biome check .",
     "scripts": "bun run src/scripts/index.ts"
