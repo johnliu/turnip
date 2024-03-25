@@ -1,5 +1,4 @@
 import {
-  type APIApplicationCommandInteractionDataSubcommandOption,
   type APIApplicationCommandInteractionDataUserOption,
   type APIChatInputApplicationCommandInteraction,
   type APIInteractionResponseChannelMessageWithSource,
@@ -42,8 +41,7 @@ export async function handleGiveChatInput(
 ) {
   const senderId = assertNotNull(member?.user.id ?? user?.id);
 
-  const subcommand = first(data.options) as APIApplicationCommandInteractionDataSubcommandOption | undefined;
-  const receiver = first(subcommand?.options) as APIApplicationCommandInteractionDataUserOption | undefined;
+  const receiver = first(data.options) as APIApplicationCommandInteractionDataUserOption | undefined;
   const receiverId = assertNotNull(receiver?.value);
 
   return await handleGive(env, senderId, receiverId);
