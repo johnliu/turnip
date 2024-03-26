@@ -50,7 +50,7 @@ export const GuildTurnipQueries = {
     const responses = await db.batch<{ count: number }>(statements);
     return {
       userTotal: responses[0].results[0].count,
-      guildTotal: responses[0].results[0].count,
+      guildTotal: responses[1].results[0].count,
     };
   },
 
