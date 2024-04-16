@@ -5,7 +5,7 @@ export enum ApplicationIntegrationType {
   UserInstall = 1,
 }
 
-export enum IntegrationContextType {
+export enum InteractionContextType {
   Guild = 0,
   BotDM = 1,
   PrivateChannel = 2,

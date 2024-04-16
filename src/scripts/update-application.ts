@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises';
 import { env } from 'node:process';
-import { type APIApplication, Routes } from 'discord-api-types/v10';
+import { type APIApplication, type APIApplicationInstallParams, OAuth2Scopes, Routes } from 'discord-api-types/v10';
 
 import { ApplicationIntegrationType } from '@/constants';
 import { request } from '@/scripts/lib';
@@ -8,8 +8,9 @@ import { request } from '@/scripts/lib';
 type RESTPatchAPIApplication = Partial<APIApplication> &
   Partial<{
     integration_types_config: {
-      [ApplicationIntegrationType.GuildInstall]?: null;
-      [ApplicationIntegrationType.UserInstall]?: null;
+      [key in ApplicationIntegrationType]?: {
+        oauth2_install_params?: APIApplicationInstallParams;
+      };
     };
   }>;
 
@@ -24,7 +25,12 @@ export async function updateApplication(interactions_endpoint_url?: string) {
     icon: imageDataUri,
     interactions_endpoint_url,
     integration_types_config: {
-      [ApplicationIntegrationType.UserInstall]: null,
+      [ApplicationIntegrationType.UserInstall]: {
+        oauth2_install_params: {
+          scopes: [OAuth2Scopes.ApplicationsCommands],
+          permissions: '0',
+        },
+      },
     },
   };
 

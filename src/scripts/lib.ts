@@ -12,7 +12,7 @@ export async function request<T>({ method, path, body }: { method: string; path:
     body,
   };
 
-  console.log('Request:', inspect(body));
+  console.log('Request:', inspect(body, undefined, null));
   const res = await fetch(RouteBases.api + path, {
     ...req,
     body: JSON.stringify(req.body),
