@@ -1,0 +1,65 @@
+name: Cloudflare Worker Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Changed files filter
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            update-commands:
+              - 'src/scripts/update-commands.ts'
+            update-application:
+              - 'src/scripts/update-application.ts'
+            migrations:
+              - 'migrations/**'
+
+      - name: Create .env file
+        run: |
+          touch .env
+          echo "ENV=${{ vars.ENV }}" >> .env
+          echo "CLOUDFLARE_ACCOUNT_ID=${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" >> .env
+          echo "CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_API_TOKEN }}" >> .env
+          echo "CLOUDFLARE_D1_ID=${{ secrets.CLOUDFLARE_D1_ID }}" >> .env
+          echo "DISCORD_APPLICATION_ID=${{ secrets.DISCORD_APPLICATION_ID }}" >> .env
+          echo "DISCORD_PUBLIC_KEY=${{ secrets.DISCORD_PUBLIC_KEY }}" >> .env
+          echo "DISCORD_BOT_TOKEN=${{ secrets.DISCORD_BOT_TOKEN }}" >> .env
+
+      - name: Install devbox
+        uses: jetify-com/devbox-install-action@v0.10.0
+
+      - name: Generate configs
+        run: |
+          devbox run -- bun scripts generate-configs
+
+      - name: Update secrets
+        run: |
+          devbox run -- 'echo $DISCORD_APPLICATION_ID | bun wrangler secret put DISCORD_APPLICATION_ID'
+          devbox run -- 'echo $DISCORD_PUBLIC_KEY | bun wrangler secret put DISCORD_PUBLIC_KEY'
+          devbox run -- 'echo $DISCORD_BOT_TOKEN | bun wrangler secret put DISCORD_BOT_TOKEN'
+
+      - name: Deploy worker
+        run: devbox run -- 'bun run deploy'
+
+      - name: Run migrations
+        if: steps.filter.outputs.migrations == 'true'
+        run: devbox run -- 'bun migrations --remote'
+
+      - name: Update application
+        if: steps.filter.outputs.update-application == 'true'
+        run: devbox run -- 'bun scripts update-application'
+
+      - name: Update commands
+        if: steps.filter.outputs.update-commands == 'true'
+        run: devbox run -- 'bun scripts update-commands'

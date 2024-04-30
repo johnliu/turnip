@@ -4,6 +4,6 @@
     "DO_NOT_TRACK": "1"
   },
   "shell": {
-    "init_hook": ["set -a && source \"$DEVBOX_PROJECT_ROOT/.env.${ENV:-staging}\" && set +a", "lefthook install"]
+    "init_hook": ["set -a && . \"$DEVBOX_PROJECT_ROOT/.env\" && set +a", "lefthook install", "bun install"]
   }
 }

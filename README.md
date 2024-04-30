@@ -34,12 +34,11 @@ sync hooks: ✔️ (pre-commit)
 
 To get started with this example app, you'll need to first create a Discord application in the [developer portal](https://discord.com/developers/applications).
 
-You'll then need to copy four files and fill out the environment variables:
+You'll then need to copy the example .env file and fill in the environment variables.
 
 - `.env.example` -> `.env` -- this contains all environment variables, will contain some duplicates from other files
-- `.dev.vars.example` -> `.dev.vars` -- secrets used locally by miniflare during development
-- `secrets.example.json` -> `secrets.json` -- used to upload production secrets to cloudflare, this should match what's in `.dev.vars`
-- `wrangler.example.toml` -> `wrangler.toml` -- configuration file for the worker, only really contains the D1 database id
+
+Note: this will generate the other configs needed for local dev.
 
 
 ### Local Development
@@ -113,19 +112,14 @@ Published turnip (0.27 sec)
 Current Deployment ID: <deployment-id>
 ```
 
-After your first deploy, make sure you upload your secrets using `bun wrangler secret:bulk secrets.json`.
+After your first deploy, make sure you upload your secrets using `echo <KEY> | bun wrangler secret put <key>`.
 
 ```sh
-$ bun wrangler secret:bulk secrets.json
- ⛅️ wrangler 3.34.2 (update available 3.37.0)
+$ echo $DISCORD_APPLICATION_ID | bun wrangler secret put DISCORD_APPLICATION_ID
+ ⛅️ wrangler 3.34.2 (update available 3.52.0)
 -------------------------------------------------------
-🌀 Creating the secrets for the Worker "turnip"
-✨ Successfully created secret for key: DISCORD_APPLICATION_ID
-✨ Successfully created secret for key: DISCORD_PUBLIC_KEY
-✨ Successfully created secret for key: DISCORD_BOT_TOKEN
-
-Finished processing secrets JSON file:
-✨ 3 secrets successfully uploaded
+🌀 Creating the secret for the Worker "turnip"
+✨ Success! Uploaded secret DISCORD_APPLICATION_ID
 ```
 
 Also make sure to apply migrations to the D1 database `bun migrations --remote`.

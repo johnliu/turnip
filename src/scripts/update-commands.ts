@@ -19,6 +19,14 @@ type APIApplicationCommand =
 export async function updateCommands() {
   const commands: APIApplicationCommand[] = [
     {
+      name: 'patch-notes',
+      description: "What's new with turnips.",
+      integration_types: [ApplicationIntegrationType.UserInstall],
+      contexts: [InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel],
+      type: ApplicationCommandType.ChatInput,
+    },
+
+    {
       name: 'fact',
       description: 'Get a fact about turnips.',
       integration_types: [ApplicationIntegrationType.UserInstall],

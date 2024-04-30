@@ -1,4 +1,5 @@
 import { parseArgs } from 'node:util';
+import { generateConfigs } from '@/scripts/generate-configs';
 import { updateApplication } from '@/scripts/update-application';
 import { updateCommands } from '@/scripts/update-commands';
 
@@ -10,6 +11,10 @@ switch (positionals[0]) {
   }
   case 'update-application': {
     updateApplication(positionals[1]);
+    break;
+  }
+  case 'generate-configs': {
+    generateConfigs();
     break;
   }
   default:
