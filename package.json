@@ -22,7 +22,8 @@
     "deploy": "bun wrangler deploy",
     "migrations": "bun wrangler d1 migrations apply turnip",
     "dev": "bun wrangler dev",
-    "tunnel": "cloudflared tunnel --url localhost:3000",
+    "tunnel": "cloudflared tunnel --url localhost:3000 --metrics localhost:54321",
+    "tunnel-url": "curl -s localhost:54321/quicktunnel | jq '.hostname' --raw-output",
     "check": "bun biome check .",
     "scripts": "bun run src/scripts/index.ts"
   }

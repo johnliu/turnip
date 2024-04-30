@@ -1,5 +1,5 @@
 {
-  "packages": ["lefthook@latest", "cloudflared@latest", "bun@latest", "nodejs@latest"],
+  "packages": ["lefthook@latest", "cloudflared@latest", "bun@latest", "nodejs@latest", "jq@latest"],
   "env": {
     "DO_NOT_TRACK": "1"
   },
