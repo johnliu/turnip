@@ -6,8 +6,8 @@ import {
 import humanizeDuration from 'humanize-duration';
 
 import type { Bindings } from '@/constants';
-import { GuildTurnipQueries, HARVEST_TIME } from '@/models/turnips';
-import { assertNotNull } from '@/utils';
+import { GuildTurnipQueries, HARVEST_TIME } from '@/models/deprecated_turnips';
+import { assertNotNull } from '@/utils/types';
 
 export async function handlePlant({ guild_id, member }: APIChatInputApplicationCommandInteraction, env: Bindings) {
   const guildId = assertNotNull(guild_id);

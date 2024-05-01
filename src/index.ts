@@ -16,7 +16,7 @@ import { handleInventory } from '@/interactions/inventory';
 import { handlePing } from '@/interactions/ping';
 import { handlePlant } from '@/interactions/plant';
 import { handleSurvey } from '@/interactions/survey';
-import { verifyKeyMiddleware } from '@/utils';
+import { verifyKeyMiddleware } from '@/utils/hono';
 
 const app = new Hono<{ Bindings: Bindings }>();
 app.use(verifyKeyMiddleware);

@@ -1,6 +1,6 @@
 import type { Bindings } from '@/constants';
-import { MAX_COUNTABLE_TURNIPS, UserTurnipQueries } from '@/models/turnips';
-import { assertNotNull } from '@/utils';
+import { MAX_COUNTABLE_TURNIPS, UserTurnipQueries } from '@/models/deprecated_turnips';
+import { assertNotNull } from '@/utils/types';
 import {
   type APIChatInputApplicationCommandInteraction,
   type APIInteractionResponseChannelMessageWithSource,

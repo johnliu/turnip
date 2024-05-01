@@ -1,78 +1,138 @@
-import type { D1Database } from '@cloudflare/workers-types';
+import { randomRange } from '@/utils/random';
 
-export const MAX_COUNTABLE_TURNIPS = 1000;
-export const HARVEST_TIME = 1000 * 60 * 60 * 2;
+enum TurnipType {
+  STANDARD = 0,
+}
 
-enum SourceType {
+enum OriginType {
+  FORAGED = 0,
+  HARVEST = 1,
+}
+
+enum OwnerType {
   USER = 0,
   GUILD = 1,
 }
 
-export type UserTurnip = {
-  user_id: string;
-  collected_at_ms: number;
-  source_type: SourceType;
-  source_id: string;
+export type Turnip = {
+  id: string;
+  created_at: Date;
+  type: TurnipType;
+  origin_type: OriginType;
+  origin_id: string | null;
+  parent_id: string;
+  owner_type: OwnerType;
+  owner_id: string;
+  owned_at: Date;
 };
 
 export type GuildTurnip = {
   guild_id: string;
+  turnip_id: string;
+  harvestable_at: number;
+  harvests_remaining: number;
   planter_id: string;
-  planted_at_ms: number;
+  planted_at: number;
 };
 
-export const UserTurnipQueries = {
-  async getTurnips(db: D1Database, userId: string) {
-    const statement = db.prepare('SELECT * FROM user_turnips WHERE user_id = ?1 ORDER BY collected_at_ms LIMIT 1000');
-    const response = await statement.bind(userId).all<UserTurnip>();
-
-    return response.success ? response.results : null;
-  },
-
-  async giveTurnip(db: D1Database, senderId: string, receiverId: string) {
-    const statement = db.prepare(
-      'INSERT INTO user_turnips (user_id, collected_at_ms, source_type, source_id) VALUES(?1, ?2, ?3, ?4)',
-    );
-    const response = await statement.bind(receiverId, new Date().getTime(), SourceType.USER, senderId).run();
-    return response.success;
-  },
-};
-
-export const GuildTurnipQueries = {
-  async surveyTurnips(db: D1Database, guildId: string, userId: string) {
-    const statements = [
-      db
-        .prepare('SELECT COUNT(*) AS count FROM guild_turnips WHERE guild_id = ?1 AND planter_id = ?2')
-        .bind(guildId, userId),
-      db.prepare('SELECT COUNT(*) AS count FROM guild_turnips WHERE guild_id = ?1').bind(guildId),
-    ];
-
-    const responses = await db.batch<{ count: number }>(statements);
-    return {
-      userTotal: responses[0].results[0].count,
-      guildTotal: responses[1].results[0].count,
-    };
-  },
-
-  async plantTurnip(db: D1Database, guildId: string, planterId: string) {
+const TurnipQueries = {
+  changeOldestTurnipOwner(
+    db: D1Database,
+    senderId: string,
+    senderOwnerType: OwnerType,
+    receiverId: string,
+    receiverIdType: OwnerType,
+    type: TurnipType = TurnipType.STANDARD,
+  ) {
     const statement = db.prepare(`
-      INSERT INTO guild_turnips (guild_id, planter_id, planted_at_ms)
-      SELECT ?1, ?2, ?3
-      WHERE NOT EXISTS (
-        SELECT * FROM guild_turnips
-        WHERE guild_id = ?1 AND planter_id = ?2 AND planted_at_ms >= (?3 - ${HARVEST_TIME})
+      UPDATE turnips
+      SET owner_id = ?,
+          owner_type = ?,
+          owned_at = ?,
+      WHERE owner_id = ?,
+        AND owner_type = ?,
+        AND type = ?
+      ORDER BY owned_at ASC
+      LIMIT 1
+      RETURNING *
+    `);
+
+    return statement.bind(senderId, senderOwnerType, new Date(), receiverId, receiverIdType, type);
+  },
+
+  async insertTurnip(db: D1Database, turnip: Turnip) {
+    const statement = db.prepare(`
+      INSERT INTO turnips (
+        id, created_at, type, origin_type, origin_id, parent_id, owner_type, owner_id, owned_at
+      ) VALUES (
+        ?, ?, ?, ?, ?, ?, ?, ?, ?
+      )
+      RETURNING *
+    `);
+
+    return statement.bind(
+      turnip.id,
+      turnip.created_at,
+      turnip.type,
+      turnip.origin_type,
+      turnip.origin_id,
+      turnip.parent_id,
+      turnip.owner_type,
+      turnip.owner_id,
+      turnip.owned_at,
+    );
+  },
+
+  async giveTurnip(db: D1Database, senderId: string, receiverId: string, type: TurnipType = TurnipType.STANDARD) {
+    return this.changeOldestTurnipOwner(db, senderId, OwnerType.USER, receiverId, OwnerType.USER, type);
+  },
+
+  async getTurnipsForUser(db: D1Database, userId: string) {
+    const statement = db.prepare(`
+      SELECT type, COUNT(*) AS count
+      FROM turnips
+      WHERE owner_id = ?,
+            owner_type = ?
+      GROUP BY type
+      ORDER BY type
+    `);
+
+    return statement.bind(userId, OwnerType.USER);
+  },
+
+  async plantTurnip(db: D1Database, userId: string, guildId: string, type: TurnipType = TurnipType.STANDARD) {
+    const turnip = await this.changeOldestTurnipOwner(
+      db,
+      userId,
+      OwnerType.USER,
+      guildId,
+      OwnerType.GUILD,
+      type,
+    ).first<Turnip>();
+    if (turnip == null) {
+      return null;
+    }
+
+    const statement = db.prepare(`
+      INSERT INTO guild_turnips (
+        guild_id,
+        turnip_id,
+        harvestable_at,
+        harvests_remaining,
+        planter_id,
+        planted_at
+      ) VALUES (
+        ?, ?, ?, ?, ?, ?
       )
     `);
 
-    const response = await statement.bind(guildId, planterId, new Date().getTime()).run();
-    return response.meta.changed_db;
-  },
-
-  async lastPlanted(db: D1Database, guildId: string, planterId: string) {
-    const statement = db.prepare(
-      'SELECT * FROM guild_turnips WHERE guild_id = ?1 AND planter_id = ?2 ORDER BY planted_at_ms DESC LIMIT 1',
+    return statement.bind(
+      guildId,
+      turnip.id,
+      new Date(turnip.owned_at.getTime() + 2 * 60 * 60 * 1000),
+      randomRange(8, 12),
+      userId,
+      turnip.owned_at,
     );
-    const response = await statement.bind(guildId, planterId).first<GuildTurnip>();
-    return response;
   },
 };

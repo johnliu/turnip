@@ -8,8 +8,9 @@ import {
 } from 'discord-api-types/v10';
 
 import type { Bindings } from '@/constants';
-import { UserTurnipQueries } from '@/models/turnips';
-import { assertNotNull, first } from '@/utils';
+import { UserTurnipQueries } from '@/models/deprecated_turnips';
+import { first } from '@/utils/arrays';
+import { assertNotNull } from '@/utils/types';
 
 async function handleGive(
   env: Bindings,

@@ -1,8 +1,8 @@
 import { type APIChatInputApplicationCommandInteraction, InteractionResponseType } from 'discord-api-types/v10';
 
 import type { Bindings } from '@/constants';
-import { GuildTurnipQueries } from '@/models/turnips';
-import { assertNotNull } from '@/utils';
+import { GuildTurnipQueries } from '@/models/deprecated_turnips';
+import { assertNotNull } from '@/utils/types';
 
 export async function handleSurvey({ guild_id, member }: APIChatInputApplicationCommandInteraction, env: Bindings) {
   const guildId = assertNotNull(guild_id);

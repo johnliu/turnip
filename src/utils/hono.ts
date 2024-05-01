@@ -16,14 +16,3 @@ export const verifyKeyMiddleware: MiddlewareHandler = async (c, next) => {
 
   await next();
 };
-
-export function assertNotNull<T>(value: T | null | undefined): T {
-  if (value == null) {
-    throw new Error('Unexpected null-ish value.');
-  }
-  return value;
-}
-
-export function first<T>(array: T[] | null | undefined): T | undefined {
-  return array != null && array.length > 0 ? array[0] : undefined;
-}
