@@ -1,4 +1,5 @@
 import { randomRange } from '@/utils/random';
+import type { SnakeKeysToCamel } from '@/utils/types';
 
 enum TurnipType {
   STANDARD = 0,
@@ -26,6 +27,16 @@ export type Turnip = {
   owned_at: Date;
 };
 
+type TurnipTransaction = {
+  id: string;
+  created_at: Date;
+  turnip_id: string;
+  sender_id: string;
+  sender_type: OwnerType;
+  receiver_id: string;
+  receiver_type: OwnerType;
+};
+
 export type GuildTurnip = {
   guild_id: string;
   turnip_id: string;
@@ -35,8 +46,19 @@ export type GuildTurnip = {
   planted_at: number;
 };
 
-const TurnipQueries = {
-  changeOldestTurnipOwner(
+
+type TurnipTransactionParams = SnakeKeysToCamel<TurnipTransaction>;
+
+function internalCreateTransaction(db: D1Database, transaction: TurnipTransactionParams) {
+
+}
+
+const TurnipInternalQueries = {
+  createTransaction({db, turnipId, createdAt, senderId, senderType, receiverId, receiverType}: {db: D1Database, turnipId: string, createdAt: Date, senderId: string, senderType: OwnerType, receiverId: string, receiverType: OwnerType}) {
+
+  },
+
+  moveTurnip(
     db: D1Database,
     senderId: string,
     senderOwnerType: OwnerType,
@@ -44,23 +66,44 @@ const TurnipQueries = {
     receiverIdType: OwnerType,
     type: TurnipType = TurnipType.STANDARD,
   ) {
-    const statement = db.prepare(`
-      UPDATE turnips
-      SET owner_id = ?,
-          owner_type = ?,
-          owned_at = ?,
-      WHERE owner_id = ?,
-        AND owner_type = ?,
-        AND type = ?
-      ORDER BY owned_at ASC
-      LIMIT 1
-      RETURNING *
-    `);
+    const statements = [
+      db.prepare(
+        `
+        UPDATE turnips
+        SET owner_id = ?,
+            owner_type = ?,
+            owned_at = ?,
+        WHERE owner_id = ?,
+          AND owner_type = ?,
+          AND type = ?
+        ORDER BY owned_at ASC
+        LIMIT 1
+        RETURNING *
+        `
+      ).bind(
+        senderId,
+        senderOwnerType,
+        new Date(),
+        receiverId,
+        receiverIdType,
+        type,
+      ),
+      db.prepare(
+        `
+        INSERT INTO turnip_transactions (
 
-    return statement.bind(senderId, senderOwnerType, new Date(), receiverId, receiverIdType, type);
+        )
+        `
+      ),
+    ];
+
+    return statements;
   },
+}
 
-  async insertTurnip(db: D1Database, turnip: Turnip) {
+const TurnipQueries = {
+
+  async createTurnip(db: D1Database, turnip: Turnip) {
     const statement = db.prepare(`
       INSERT INTO turnips (
         id, created_at, type, origin_type, origin_id, parent_id, owner_type, owner_id, owned_at

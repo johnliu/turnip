@@ -12,6 +12,16 @@ CREATE TABLE IF NOT EXISTS turnips (
   owned_at DATETIME,
 );
 
+CREATE TABLE IF NOT EXISTS turnip_transactions (
+  id TEXT PRIMARY KEY,
+  created_at_ms DATETIME,
+  turnip_id TEXT,
+  sender_id TEXT,
+  sender_type INTEGER,
+  receiver_id TEXT,
+  receiver_type INTEGER
+);
+
 -- Rename previous guild_turnips table
 ALTER TABLE guild_turnips RENAME TO guild_turnips_deprecated;
 
