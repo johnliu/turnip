@@ -24,7 +24,9 @@ export type GuildTurnip = {
 
 export const UserTurnipQueries = {
   async getTurnips(db: D1Database, userId: string) {
-    const statement = db.prepare('SELECT * FROM user_turnips WHERE user_id = ?1 ORDER BY collected_at_ms LIMIT 1000');
+    const statement = db.prepare(
+      'SELECT * FROM user_turnips WHERE user_id = ?1 ORDER BY collected_at_ms LIMIT 1000',
+    );
     const response = await statement.bind(userId).all<UserTurnip>();
 
     return response.success ? response.results : null;
@@ -34,7 +36,9 @@ export const UserTurnipQueries = {
     const now = new Date().getTime();
     const statements = [
       db
-        .prepare('INSERT INTO user_turnips (user_id, collected_at_ms, source_type, source_id) VALUES(?1, ?2, ?3, ?4)')
+        .prepare(
+          'INSERT INTO user_turnips (user_id, collected_at_ms, source_type, source_id) VALUES(?1, ?2, ?3, ?4)',
+        )
         .bind(receiverId, now, SourceType.USER, senderId),
       db
         .prepare(
@@ -50,7 +54,9 @@ export const UserTurnipQueries = {
     const statement = db.prepare(
       'INSERT INTO user_turnips (user_id, collected_at_ms, source_type, source_id) VALUES(?1, ?2, ?3, ?4)',
     );
-    const response = await statement.bind(receiverId, new Date().getTime(), SourceType.USER, senderId).run();
+    const response = await statement
+      .bind(receiverId, new Date().getTime(), SourceType.USER, senderId)
+      .run();
     return response.success;
   },
 };
@@ -59,7 +65,9 @@ export const GuildTurnipQueries = {
   async surveyTurnips(db: D1Database, guildId: string, userId: string) {
     const statements = [
       db
-        .prepare('SELECT COUNT(*) AS count FROM guild_turnips WHERE guild_id = ?1 AND planter_id = ?2')
+        .prepare(
+          'SELECT COUNT(*) AS count FROM guild_turnips WHERE guild_id = ?1 AND planter_id = ?2',
+        )
         .bind(guildId, userId),
       db.prepare('SELECT COUNT(*) AS count FROM guild_turnips WHERE guild_id = ?1').bind(guildId),
     ];

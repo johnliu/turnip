@@ -1,15 +1,16 @@
-import {
-  type APIApplicationCommandInteractionDataUserOption,
-  type APIChatInputApplicationCommandInteraction,
-  type APIInteractionResponseChannelMessageWithSource,
-  type APIMessageApplicationCommandInteraction,
-  type APIUserApplicationCommandInteraction,
-  InteractionResponseType,
+import type {
+  APIApplicationCommandInteractionDataUserOption,
+  APIChatInputApplicationCommandInteraction,
+  APIInteractionResponseChannelMessageWithSource,
+  APIMessageApplicationCommandInteraction,
+  APIUserApplicationCommandInteraction,
 } from 'discord-api-types/v10';
 
 import type { Bindings } from '@/constants';
-import { UserTurnipQueries } from '@/models/deprecated_turnips';
+import { QueryError } from '@/models/constants';
+import TurnipQueries from '@/models/queries/turnip';
 import { first } from '@/utils/arrays';
+import { renderContent } from '@/utils/interactions';
 import { assertNotNull } from '@/utils/types';
 
 async function handleGive(
@@ -17,23 +18,28 @@ async function handleGive(
   senderId: string,
   receiverId: string,
 ): Promise<APIInteractionResponseChannelMessageWithSource> {
-  let content = null;
   if (receiverId === env.DISCORD_APPLICATION_ID) {
-    content = `Aw thanks <@${senderId}>, but you can't give this turnip back to me.`;
-  } else if (receiverId === senderId) {
-    content = `Silly <@${senderId}>, you can't give a turnip to yourself!`;
-  } else if (await UserTurnipQueries.giveTurnip(env.db, senderId, receiverId)) {
-    content = `<@${senderId}> gave a turnip to you <@${receiverId}>`;
-  } else {
-    content = `Sorry <@${senderId}>, looks like I didn't have any turnips in stock to give. Try again later.`;
+    return renderContent(`Aw thanks <@${senderId}>, but you can't give this turnip back to me.`);
   }
 
-  return {
-    type: InteractionResponseType.ChannelMessageWithSource,
-    data: {
-      content,
-    },
-  };
+  if (receiverId === senderId) {
+    return renderContent(`Silly <@${senderId}>, you can't give a turnip to yourself!`);
+  }
+
+  const result = await TurnipQueries.giveTurnip(env.db, { senderId, receiverId });
+  if (result.isOk()) {
+    return renderContent(`<@${senderId}> gave a turnip to you <@${receiverId}>`);
+  }
+
+  if (result.error.type === QueryError.NoTurnipsError) {
+    return renderContent(
+      `Woops, silly <@${senderId}>! You don't have any turnips to give. Try to \`/forage\` for some turnips.`,
+    );
+  }
+
+  return renderContent(
+    `Sorry <@${senderId}>, looks like I wasn't able to give your turnip right now. Try again later.`,
+  );
 }
 
 export async function handleGiveChatInput(
@@ -42,7 +48,9 @@ export async function handleGiveChatInput(
 ) {
   const senderId = assertNotNull(member?.user.id ?? user?.id);
 
-  const receiver = first(data.options) as APIApplicationCommandInteractionDataUserOption | undefined;
+  const receiver = first(data.options) as
+    | APIApplicationCommandInteractionDataUserOption
+    | undefined;
   const receiverId = assertNotNull(receiver?.value);
 
   return await handleGive(env, senderId, receiverId);
@@ -58,7 +66,10 @@ export async function handleGiveMessage(
   return await handleGive(env, senderId, receiverId);
 }
 
-export async function handleGiveUser({ data, member, user }: APIUserApplicationCommandInteraction, env: Bindings) {
+export async function handleGiveUser(
+  { data, member, user }: APIUserApplicationCommandInteraction,
+  env: Bindings,
+) {
   const senderId = assertNotNull(member?.user.id ?? user?.id);
   const receiverId = data.target_id;
 

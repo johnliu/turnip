@@ -10,7 +10,11 @@ export const verifyKeyMiddleware: MiddlewareHandler = async (c, next) => {
     body = JSON.stringify(await c.req.json());
   }
 
-  if (signature == null || timestamp == null || !verifyKey(body, signature, timestamp, c.env.DISCORD_PUBLIC_KEY)) {
+  if (
+    signature == null ||
+    timestamp == null ||
+    !verifyKey(body, signature, timestamp, c.env.DISCORD_PUBLIC_KEY)
+  ) {
     throw new HTTPException(401);
   }
 

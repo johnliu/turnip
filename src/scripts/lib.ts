@@ -2,7 +2,11 @@ import { env } from 'node:process';
 import { inspect } from 'node:util';
 import { RouteBases } from 'discord-api-types/v10';
 
-export async function request<T>({ method, path, body }: { method: string; path: string; body: T }) {
+export async function request<T>({
+  method,
+  path,
+  body,
+}: { method: string; path: string; body: T }) {
   const req = {
     method,
     headers: {

@@ -1,10 +1,10 @@
 import type { Bindings } from '@/constants';
-import { MAX_COUNTABLE_TURNIPS, UserTurnipQueries } from '@/models/deprecated_turnips';
+import TurnipQueries from '@/models/queries/turnip';
+import { renderContent } from '@/utils/interactions';
 import { assertNotNull } from '@/utils/types';
-import {
-  type APIChatInputApplicationCommandInteraction,
-  type APIInteractionResponseChannelMessageWithSource,
-  InteractionResponseType,
+import type {
+  APIChatInputApplicationCommandInteraction,
+  APIInteractionResponseChannelMessageWithSource,
 } from 'discord-api-types/v10';
 
 export async function handleInventory(
@@ -12,25 +12,18 @@ export async function handleInventory(
   env: Bindings,
 ): Promise<APIInteractionResponseChannelMessageWithSource> {
   const userId = assertNotNull(member?.user.id ?? user?.id);
-  const turnips = await UserTurnipQueries.getTurnips(env.db, userId);
+  const turnipCounts = await TurnipQueries.getTurnipInventory(env.db, { userId });
+  const turnipTotal = turnipCounts.reduce((total, { count }) => total + count, 0);
 
-  let content = null;
-  if (turnips == null) {
-    content = "We couldn't get your turnips. Yikes.. hope they're still there!";
-  } else if (turnips.length === 0) {
-    content = "You have no turnips :cry:, give some turnips and maybe you'll get some back.";
-  } else if (turnips.length === 1) {
-    content = 'You have one turnip.';
-  } else if (turnips.length >= MAX_COUNTABLE_TURNIPS) {
-    content = "You have 999+ turnips! That's a lot of turnips.";
-  } else {
-    content = `You have ${turnips.length} turnips.`;
+  if (turnipTotal === 0) {
+    return renderContent(
+      'You have no turnips :cry:.. `/forage` for some turnips or ask a friend to give you one.',
+    );
   }
 
-  return {
-    type: InteractionResponseType.ChannelMessageWithSource,
-    data: {
-      content,
-    },
-  };
+  if (turnipTotal === 1) {
+    return renderContent('You have one turnip.');
+  }
+
+  return renderContent(`You have ${turnipTotal} turnips.`);
 }

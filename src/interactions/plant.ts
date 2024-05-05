@@ -1,40 +1,38 @@
-import {
-  type APIChatInputApplicationCommandInteraction,
-  InteractionResponseType,
-  MessageFlags,
-} from 'discord-api-types/v10';
-import humanizeDuration from 'humanize-duration';
+import type { APIChatInputApplicationCommandInteraction } from 'discord-api-types/v10';
 
 import type { Bindings } from '@/constants';
-import { GuildTurnipQueries, HARVEST_TIME } from '@/models/deprecated_turnips';
+import { QueryError } from '@/models/constants';
+import GuildTurnipQueries from '@/models/queries/guild_turnip';
+import { renderContent } from '@/utils/interactions';
 import { assertNotNull } from '@/utils/types';
 
-export async function handlePlant({ guild_id, member }: APIChatInputApplicationCommandInteraction, env: Bindings) {
+export async function handlePlant(
+  { guild_id, member }: APIChatInputApplicationCommandInteraction,
+  env: Bindings,
+) {
   const guildId = assertNotNull(guild_id);
   const userId = assertNotNull(member?.user?.id);
-  const success = await GuildTurnipQueries.plantTurnip(env.db, guildId, userId);
 
-  let content = null;
-  let flags = 0;
-  if (success) {
-    const { userTotal, guildTotal } = await GuildTurnipQueries.surveyTurnips(env.db, guildId, userId);
-    content = `You planted a turnip in this server! There are ${guildTotal} turnips in this server. You contributed ${userTotal} turnips.`;
-  } else {
-    const lastTurnip = assertNotNull(await GuildTurnipQueries.lastPlanted(env.db, guildId, userId));
+  const plantResult = await GuildTurnipQueries.plantTurnip(env.db, { guildId, userId });
 
-    const remainingDuration = lastTurnip.planted_at_ms + HARVEST_TIME - new Date().getTime();
-    console.log(remainingDuration);
-    const durationString =
-      remainingDuration > 1000 * 60 ? humanizeDuration(remainingDuration, { units: ['h', 'm'], round: true }) : 'a bit';
-    content = `You planted a turnip too recently! Try again in ${durationString}.`;
-    flags = MessageFlags.Ephemeral;
+  if (plantResult.isErr()) {
+    if (plantResult.error.type === QueryError.NoTurnipsError) {
+      return renderContent(
+        'You have no turnips to plant. Try `/harvest`ing for some in this server.',
+      );
+    }
+
+    return renderContent("Oops! I wasn't able to plant a turnip here. Try again later.");
   }
 
-  return {
-    type: InteractionResponseType.ChannelMessageWithSource,
-    data: {
-      content,
-      flags,
-    },
-  };
+  const surveyResult = await GuildTurnipQueries.getSurveyGuild(env.db, { guildId, userId });
+
+  if (surveyResult.isErr()) {
+    return renderContent('You planted a turnip in this server!');
+  }
+
+  const { guildPlantedCount, userPlantedCount, remainingHarvestsCount } = surveyResult.value;
+  return renderContent(
+    `You planted a turnip in this server! There are ${guildPlantedCount} turnips in this server. You contributed ${userPlantedCount} turnips.`,
+  );
 }

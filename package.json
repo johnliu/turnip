@@ -18,6 +18,7 @@
     "discord-interactions": "^3.4.0",
     "hono": "^4.1.2",
     "humanize-duration": "^3.31.0",
+    "neverthrow": "^6.2.1",
     "uuid": "^9.0.1"
   },
   "scripts": {

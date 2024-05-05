@@ -11,7 +11,9 @@ import { HTTPException } from 'hono/http-exception';
 
 import type { Bindings } from '@/constants';
 import handleFact from '@/interactions/fact';
+import { handleForage } from '@/interactions/forage';
 import { handleGiveChatInput, handleGiveMessage, handleGiveUser } from '@/interactions/give';
+import { handleHarvest } from '@/interactions/harvest';
 import { handleInventory } from '@/interactions/inventory';
 import { handlePing } from '@/interactions/ping';
 import { handlePlant } from '@/interactions/plant';
@@ -29,6 +31,10 @@ async function handleCommand(body: APIApplicationCommandInteraction, env: Bindin
       return await handleSurvey(body as APIChatInputApplicationCommandInteraction, env);
     case 'plant':
       return await handlePlant(body as APIChatInputApplicationCommandInteraction, env);
+    case 'harvest':
+      return await handleHarvest(body as APIChatInputApplicationCommandInteraction, env);
+    case 'forage':
+      return await handleForage(body as APIChatInputApplicationCommandInteraction, env);
     case 'inventory':
       return await handleInventory(body as APIChatInputApplicationCommandInteraction, env);
     case 'give':
