@@ -78,3 +78,33 @@ export function makeInsertOneStatement<T extends object>(
     transformer: makeOneTransformer(),
   };
 }
+
+export async function getOne<T extends object>(
+  db: D1Database,
+  table: string,
+  where: Partial<T>,
+): Promise<T | null | undefined> {
+  return first(await getMany(db, table, where, 1));
+}
+
+export async function getMany<T extends object>(
+  db: D1Database,
+  table: string,
+  where: Partial<T>,
+  limit?: number,
+): Promise<T[] | null | undefined> {
+  const result = await db
+    .prepare(
+      `
+      SELECT * FROM ${table}
+      WHERE ${Object.keys(where)
+        .map((k) => `${k} = ?`)
+        .join(' AND ')}
+      ${limit != null ? `LIMIT ${limit}` : ''}
+      `,
+    )
+    .bind(...Object.values(where))
+    .all<T>();
+
+  return result.results;
+}

@@ -1,7 +1,7 @@
 import { v1 as uuid } from 'uuid';
 
 import { OwnerType, USER_FORAGE_COOLDOWN_MS, USER_HARVEST_COOLDOWN_MS } from '@/models/constants';
-import type { TurnipTransaction } from '@/models/turnip_transactions';
+import type { TurnipTransaction } from '@/models/turnip-transactions';
 import {
   type Statement,
   makeInsertManyStatement,

@@ -1,4 +1,7 @@
-export type StandardError<T, C = null> = {
+export class StandardError<T> {
   type: T;
-  context?: C;
-};
+
+  constructor(type: T) {
+    this.type = type;
+  }
+}

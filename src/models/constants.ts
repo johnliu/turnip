@@ -1,4 +1,4 @@
-import type { StandardError } from '@/utils/errors';
+import { StandardError } from '@/utils/errors';
 
 export enum TurnipType {
   STANDARD = 0,
@@ -22,17 +22,32 @@ export enum QueryError {
   HarvestOnCooldown = 3,
 }
 
-export type ForageOnCooldownError = StandardError<
-  QueryError.ForageOnCooldown,
-  { remaining_cooldown_ms: number }
->;
+export class ForageOnCooldownError extends StandardError<QueryError.ForageOnCooldown> {
+  remainingCooldown: number;
 
-export type HarvestOnCooldownError = StandardError<
-  QueryError.HarvestOnCooldown,
-  { remaining_cooldown_ms: number }
->;
+  constructor(remainingCooldown: number) {
+    super(QueryError.ForageOnCooldown);
+    this.remainingCooldown = remainingCooldown;
+  }
+}
 
-export type MissingResultError = StandardError<QueryError.MissingResult, { query: string }>;
+export class HarvestOnCooldownError extends StandardError<QueryError.HarvestOnCooldown> {
+  remainingCooldown: number;
+
+  constructor(remainingCooldown: number) {
+    super(QueryError.HarvestOnCooldown);
+    this.remainingCooldown = remainingCooldown;
+  }
+}
+
+export class MissingResultError extends StandardError<QueryError.MissingResult> {
+  query: string;
+
+  constructor(query: string) {
+    super(QueryError.MissingResult);
+    this.query = query;
+  }
+}
 
 // Users can harvest between 1-3 turnips each time.
 export const USER_HARVEST_AMOUNT_RANGE = [1, 3] as const;

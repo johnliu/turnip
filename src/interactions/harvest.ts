@@ -2,7 +2,7 @@ import type { APIChatInputApplicationCommandInteraction } from 'discord-api-type
 
 import type { Bindings } from '@/constants';
 import { QueryError } from '@/models/constants';
-import GuildTurnipQueries from '@/models/queries/guild_turnip';
+import GuildTurnipQueries from '@/models/queries/guild-turnip';
 import { renderContent } from '@/utils/interactions';
 import { assertNotNull } from '@/utils/types';
 

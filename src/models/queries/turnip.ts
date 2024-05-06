@@ -2,8 +2,8 @@ import { type Result, err, ok } from 'neverthrow';
 import { v1 as uuid } from 'uuid';
 
 import {
-  type ForageOnCooldownError,
-  type MissingResultError,
+  ForageOnCooldownError,
+  MissingResultError,
   OriginType,
   OwnerType,
   QueryError,
@@ -15,10 +15,16 @@ import {
   getLastForage,
   prepareCreateTransaction,
   prepareCreateTransactions,
-} from '@/models/queries/turnip_transaction';
+} from '@/models/queries/turnip-transaction';
 import type { Turnip } from '@/models/turnip';
-import type { TurnipTransaction } from '@/models/turnip_transactions';
-import { type Statements, batch, makeInsertManyStatement, makeOneStatement } from '@/utils/d1';
+import type { TurnipTransaction } from '@/models/turnip-transactions';
+import {
+  type Statements,
+  batch,
+  getOne,
+  makeInsertManyStatement,
+  makeOneStatement,
+} from '@/utils/d1';
 import type { StandardError } from '@/utils/errors';
 import { randomRange } from '@/utils/random';
 
@@ -111,21 +117,12 @@ export async function getOldestTurnipForUser(
     userId: string;
     turnipType: TurnipType;
   },
-): Promise<Turnip | null> {
-  const statement = db
-    .prepare(
-      `
-      SELECT * FROM Turnip
-      WHERE ownerId = ?
-        AND ownerType = ?
-        AND type = ?
-      ORDER BY ownedAt ASC
-      LIMIT 1;
-      `,
-    )
-    .bind(userId, OwnerType.USER, turnipType);
-
-  return statement.first<Turnip>();
+): Promise<Turnip | null | undefined> {
+  return await getOne<Turnip>(db, 'Turnip', {
+    ownerId: userId,
+    ownerType: OwnerType.USER,
+    type: turnipType,
+  });
 }
 
 export async function giveTurnip(
@@ -189,15 +186,9 @@ export async function forageTurnips(
 ): Promise<Result<Turnip[], ForageOnCooldownError | MissingResultError>> {
   const now = new Date().getTime();
   const lastForagedTimestamp = await getLastForage(db, { timestamp: now, ...params });
-  console.log(lastForagedTimestamp);
 
   if (lastForagedTimestamp != null) {
-    return err({
-      type: QueryError.ForageOnCooldown,
-      context: {
-        remaining_cooldown_ms: lastForagedTimestamp + USER_FORAGE_COOLDOWN_MS - now,
-      },
-    });
+    return err(new ForageOnCooldownError(lastForagedTimestamp + USER_FORAGE_COOLDOWN_MS - now));
   }
 
   const [turnips, _] = await batch(
@@ -213,9 +204,7 @@ export async function forageTurnips(
     }),
   );
 
-  return turnips != null
-    ? ok(turnips)
-    : err({ type: QueryError.MissingResult, context: { query: 'forageTurnips' } });
+  return turnips != null ? ok(turnips) : err(new MissingResultError('forageTurnips'));
 }
 
 export default {

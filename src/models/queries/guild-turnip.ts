@@ -1,8 +1,8 @@
 import { type Result, err, ok } from 'neverthrow';
 
 import {
-  type HarvestOnCooldownError,
-  type MissingResultError,
+  HarvestOnCooldownError,
+  MissingResultError,
   OriginType,
   OwnerType,
   QueryError,
@@ -11,7 +11,7 @@ import {
   TurnipType,
   USER_HARVEST_AMOUNT_RANGE,
 } from '@/models/constants';
-import type { GuildTurnip } from '@/models/guild_turnip';
+import type { GuildTurnip } from '@/models/guild-turnip';
 import {
   getOldestTurnipForUser,
   prepareCreateTurnips,
@@ -21,9 +21,9 @@ import {
   prepareGetGuildPlantedCount,
   prepareGetLastHarvest,
   prepareGetUserPlantedCount,
-} from '@/models/queries/turnip_transaction';
+} from '@/models/queries/turnip-transaction';
 import type { Turnip } from '@/models/turnip';
-import type { TurnipTransaction } from '@/models/turnip_transactions';
+import type { TurnipTransaction } from '@/models/turnip-transactions';
 import {
   type Statement,
   type Statements,
@@ -151,7 +151,7 @@ export async function getSurveyGuild(
     remainingHarvestsCount == null ||
     unripeTurnips == null
   ) {
-    return err({ type: QueryError.MissingResult, context: { query: 'getSurveyGuild' } });
+    return err(new MissingResultError('getSurveyGuild'));
   }
 
   return ok({
@@ -196,7 +196,7 @@ export async function plantTurnip(
   );
 
   if (turnip == null || guildTurnip == null) {
-    return err({ type: QueryError.MissingResult, context: { query: 'plantTurnip' } });
+    return err(new MissingResultError('plantTurnip'));
   }
 
   return ok({
@@ -249,12 +249,9 @@ export async function harvestTurnips(
   }
 
   if (lastHarvestedTimestamp != null) {
-    return err({
-      type: QueryError.HarvestOnCooldown,
-      context: {
-        remaining_cooldown_ms: lastHarvestedTimestamp + TURNIP_HARVESTABLE_AFTER_MS - now,
-      },
-    });
+    return err(
+      new HarvestOnCooldownError(lastHarvestedTimestamp + TURNIP_HARVESTABLE_AFTER_MS - now),
+    );
   }
 
   const harvests = Math.max(
@@ -297,7 +294,7 @@ export async function harvestTurnips(
   ]);
 
   if (guildTurnip == null || harvestedTurnips == null) {
-    return err({ type: QueryError.MissingResult, context: { query: 'harvestTurnips' } });
+    return err(new MissingResultError('harvestTurnips'));
   }
 
   return ok({

@@ -4,17 +4,19 @@
   "module": "src/index.ts",
   "devDependencies": {
     "@biomejs/biome": "1.6.1",
+    "@cloudflare/vitest-pool-workers": "^0.2.6",
     "@cloudflare/workers-types": "^4.20240314.0",
     "@types/bun": "^1.0.10",
     "@types/humanize-duration": "^3.27.4",
+    "@types/uuid": "^9.0.8",
     "discord-api-types": "^0.37.75",
+    "vitest": "1.3.0",
     "wrangler": "^3.34.2"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@types/uuid": "^9.0.8",
     "discord-interactions": "^3.4.0",
     "hono": "^4.1.2",
     "humanize-duration": "^3.31.0",
@@ -25,6 +27,7 @@
     "deploy": "bun wrangler deploy",
     "migrations": "bun wrangler d1 migrations apply turnip",
     "dev": "bun wrangler dev",
+    "test": "bun vitest",
     "tunnel": "cloudflared tunnel --url localhost:3000 --metrics localhost:54321",
     "tunnel-url": "curl -s localhost:54321/quicktunnel | jq '.hostname' --raw-output",
     "check": "bun biome check .",
