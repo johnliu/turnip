@@ -13,7 +13,10 @@ import TurnipQueries from '@/models/queries/turnip';
 import type { Turnip } from '@/models/turnip';
 import { getMany } from '@/utils/d1';
 
-import { freezeTime, generateSnowflake, shiftTime, verifyTurnips } from '../../../utils';
+import { verifyTurnips } from '../../../utils';
+import { generateSnowflake } from '../../../utils/snowflake';
+import { shiftTime } from '../../../utils/time';
+import { freezeTime } from '../../../utils/time';
 
 interface Context {
   userId: string;
@@ -66,7 +69,7 @@ describe.each([
   { timeElapsed: 0 },
   { timeElapsed: 1 },
   { timeElapsed: USER_FORAGE_COOLDOWN_MS - 1 },
-])('user forage encounters cooldown', async ({ timeElapsed }) => {
+])('user forages but encounters cooldown', async ({ timeElapsed }) => {
   test('user cannot forage again due to cooldown', async ({ userId }) => {
     const firstResult = await TurnipQueries.forageTurnips(env.db, { userId });
     expect(firstResult.isOk()).toBe(true);
@@ -83,7 +86,7 @@ describe.each([
   });
 });
 
-test('user can forage again after cooldown', async ({ userId }) => {
+test('user forages and can forage again after cooldown', async ({ userId }) => {
   vi.spyOn(Math, 'random').mockReturnValue(0);
 
   const firstResult = await TurnipQueries.forageTurnips(env.db, { userId });

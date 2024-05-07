@@ -1,6 +1,7 @@
 import { test as base, beforeEach } from 'vitest';
 
-import { freezeTime, generateSnowflake } from '../../../utils';
+import { generateSnowflake } from '../../../utils/snowflake';
+import { freezeTime } from '../../../utils/time';
 
 interface Context {
   userId: string;
