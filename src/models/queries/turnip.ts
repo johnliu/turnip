@@ -25,7 +25,7 @@ import {
   makeInsertManyStatement,
   makeOneStatement,
 } from '@/utils/d1';
-import type { StandardError } from '@/utils/errors';
+import { StandardError } from '@/utils/errors';
 import { randomRange } from '@/utils/random';
 
 export function prepareMoveTurnip(
@@ -40,7 +40,7 @@ export function prepareMoveTurnip(
   },
 ): Statements<[Turnip, TurnipTransaction]> {
   return [
-    makeOneStatement(
+    makeOneStatement<Turnip>(
       db
         .prepare(
           `
@@ -96,7 +96,7 @@ export function prepareCreateTurnips(
   }));
 
   return [
-    makeInsertManyStatement(db, 'Turnip', turnips),
+    makeInsertManyStatement<Turnip>(db, 'Turnip', turnips),
     prepareCreateTransactions(db, {
       turnipIds: turnips.map((turnip) => turnip.id),
       createdAt: params.createdAt,
@@ -136,7 +136,7 @@ export async function giveTurnip(
 > {
   const sentTurnip = await getOldestTurnipForUser(db, { userId: params.senderId, turnipType });
   if (sentTurnip == null) {
-    return err({ type: QueryError.NoTurnipsError });
+    return err(new StandardError(QueryError.NoTurnipsError));
   }
 
   const [receivedTurnip, _] = await batch(
@@ -151,7 +151,7 @@ export async function giveTurnip(
     }),
   );
 
-  return receivedTurnip != null ? ok(receivedTurnip) : err({ type: QueryError.MissingResult });
+  return receivedTurnip != null ? ok(receivedTurnip) : err(new MissingResultError('giveTurnip'));
 }
 
 type TurnipCount = {

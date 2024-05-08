@@ -48,6 +48,13 @@ export function makeInsertManyStatement<T extends object>(
   table: string,
   models: T[],
 ): Statement<T[]> {
+  if (models.length === 0) {
+    return {
+      statement: db.prepare('SELECT NULL WHERE NULL'),
+      transformer: (_) => [],
+    };
+  }
+
   const fields: Array<keyof T> = Object.keys(models[0]) as Array<keyof T>;
 
   return {
@@ -72,7 +79,7 @@ export function makeInsertOneStatement<T extends object>(
   table: string,
   model: T,
 ): Statement<T> {
-  const { statement, transformer } = makeInsertManyStatement(db, table, [model]);
+  const { statement } = makeInsertManyStatement(db, table, [model]);
   return {
     statement,
     transformer: makeOneTransformer(),

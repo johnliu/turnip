@@ -29,16 +29,17 @@ import {
   type Statements,
   batch,
   makeInsertOneStatement,
+  makeManyStatement,
   makeOneStatement,
 } from '@/utils/d1';
-import type { StandardError } from '@/utils/errors';
+import { StandardError } from '@/utils/errors';
 import { randomRange } from '@/utils/random';
 
 export function prepareCreateGuildTurnip(
   db: D1Database,
   params: GuildTurnip,
 ): Statement<GuildTurnip> {
-  return makeInsertOneStatement(db, 'GuildTurnip', params);
+  return makeInsertOneStatement<GuildTurnip>(db, 'GuildTurnip', params);
 }
 
 export function preparePlantTurnip(
@@ -77,13 +78,13 @@ export function prepareGetRemainingHarvestsCount(
     guildId: string;
   },
 ): Statement<{ remainingHarvestsCount: number }> {
-  return makeOneStatement(
+  return makeOneStatement<{ remainingHarvestsCount: number }>(
     db
       .prepare(
         `
         SELECT COALESCE(SUM(harvestsRemaining), 0) as remainingHarvestsCount FROM GuildTurnip
         WHERE guildId = ?
-          AND harvestableAt < ?
+          AND harvestableAt <= ?
           AND harvestsRemaining > ?
         `,
       )
@@ -98,7 +99,7 @@ export function prepareGetUnripeTurnips(
     guildId: string;
   },
 ): Statement<GuildTurnip[]> {
-  return makeOneStatement(
+  return makeManyStatement<GuildTurnip>(
     db
       .prepare(
         `
@@ -182,7 +183,7 @@ export async function plantTurnip(
 
   const oldTurnip = await getOldestTurnipForUser(db, { userId: params.userId, turnipType });
   if (oldTurnip == null) {
-    return err({ type: QueryError.NoTurnipsError });
+    return err(new StandardError(QueryError.NoTurnipsError));
   }
 
   const [turnip, _, guildTurnip] = await batch(
@@ -209,7 +210,7 @@ function prepareGetHarvestableTurnip(
   db: D1Database,
   params: { timestamp: number; guildId: string },
 ): Statement<GuildTurnip> {
-  return makeOneStatement(
+  return makeOneStatement<GuildTurnip>(
     db
       .prepare(
         `
@@ -245,7 +246,7 @@ export async function harvestTurnips(
   ]);
 
   if (harvestableTurnip == null) {
-    return err({ type: QueryError.NoTurnipsError });
+    return err(new StandardError(QueryError.NoTurnipsError));
   }
 
   if (lastHarvestedTimestamp != null) {
@@ -262,7 +263,7 @@ export async function harvestTurnips(
   const [guildTurnip, harvestedTurnips, _] = await batch<
     [GuildTurnip, Turnip[], TurnipTransaction[]]
   >(db, [
-    makeOneStatement(
+    makeOneStatement<GuildTurnip>(
       db
         .prepare(
           `

@@ -13,7 +13,7 @@ export function prepareCreateTransaction(
   db: D1Database,
   params: TurnipTransaction,
 ): Statement<TurnipTransaction> {
-  return makeInsertOneStatement(db, 'TurnipTransaction', params);
+  return makeInsertOneStatement<TurnipTransaction>(db, 'TurnipTransaction', params);
 }
 
 export function prepareCreateTransactions(
@@ -35,7 +35,7 @@ export function prepareCreateTransactions(
     receiverType: params.receiverType,
   }));
 
-  return makeInsertManyStatement(db, 'TurnipTransaction', transactions);
+  return makeInsertManyStatement<TurnipTransaction>(db, 'TurnipTransaction', transactions);
 }
 
 export function prepareGetLastHarvest(
@@ -46,7 +46,7 @@ export function prepareGetLastHarvest(
     timestamp: number;
   },
 ): Statement<number> {
-  return makeOneStatement(
+  return makeOneStatement<number>(
     db
       .prepare(
         `
@@ -100,7 +100,7 @@ export function prepareGetGuildPlantedCount(
   db: D1Database,
   params: { guildId: string },
 ): Statement<{ guildPlantedCount: number }> {
-  return makeOneStatement(
+  return makeOneStatement<{ guildPlantedCount: number }>(
     db
       .prepare(
         `
@@ -117,7 +117,7 @@ export function prepareGetUserPlantedCount(
   db: D1Database,
   params: { guildId: string; userId: string },
 ): Statement<{ userPlantedCount: number }> {
-  return makeOneStatement(
+  return makeOneStatement<{ userPlantedCount: number }>(
     db
       .prepare(
         `
