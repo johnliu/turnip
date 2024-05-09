@@ -1,17 +1,18 @@
 import { env } from 'cloudflare:test';
-import { assert, test as base, beforeEach, describe, expect, vi } from 'vitest';
+import { assert, test as base, beforeEach, describe, expect } from 'vitest';
 
 import {
   ForageOnCooldownError,
   OriginType,
   OwnerType,
-  QueryError,
   TurnipType,
   USER_FORAGE_COOLDOWN_MS,
 } from '@/models/constants';
 import TurnipQueries from '@/models/queries/turnip';
 
-import { getTurnipCount, verifyTurnips } from '../../../utils/queries/turnip-utils';
+import { expectErr, expectOk } from '../../../utils/queries';
+import { assertTurnipCount, assertTurnipsMatch } from '../../../utils/queries/turnip-utils';
+import { mockRandom } from '../../../utils/random';
 import { generateSnowflake } from '../../../utils/snowflake';
 import { shiftTime } from '../../../utils/time';
 import { freezeTime } from '../../../utils/time';
@@ -26,6 +27,8 @@ const test = base<Context>;
 beforeEach<Context>(async (context) => {
   context.userId = generateSnowflake();
   context.timestamp = freezeTime();
+
+  await assertTurnipCount(context.userId, 0);
 });
 
 describe.each([
@@ -33,35 +36,31 @@ describe.each([
   { random: 1, turnipCount: 3 },
 ])('user forages with random $random value', ({ random, turnipCount }) => {
   test(`user forages ${turnipCount} turnips`, async ({ userId, timestamp }) => {
-    vi.spyOn(Math, 'random').mockReturnValue(random);
-    expect(await getTurnipCount(userId)).toBe(0);
+    mockRandom(random);
 
-    const result = await TurnipQueries.forageTurnips(env.db, { userId });
-    expect(result.isOk()).toBe(true);
-
-    const turnips = result._unsafeUnwrap();
+    const turnips = await expectOk(TurnipQueries.forageTurnips(env.db, { userId }));
     expect(turnips).toHaveLength(turnipCount);
 
-    const partialTurnip = {
-      createdAt: timestamp,
-      type: TurnipType.STANDARD,
-      originId: null,
-      originType: OriginType.FORAGED,
-      ownerId: userId,
-      ownerType: OwnerType.USER,
-      ownedAt: timestamp,
-    };
-
-    const partialTransaction = {
-      createdAt: timestamp,
-      senderId: null,
-      senderType: OwnerType.SYSTEM,
-      receiverId: userId,
-      receiverType: OwnerType.USER,
-    };
-
-    await verifyTurnips(turnips, partialTurnip, partialTransaction);
-    expect(await getTurnipCount(userId)).toBe(turnipCount);
+    await assertTurnipsMatch(
+      turnips,
+      {
+        createdAt: timestamp,
+        type: TurnipType.STANDARD,
+        originId: null,
+        originType: OriginType.FORAGED,
+        ownerId: userId,
+        ownerType: OwnerType.USER,
+        ownedAt: timestamp,
+      },
+      {
+        createdAt: timestamp,
+        senderId: null,
+        senderType: OwnerType.SYSTEM,
+        receiverId: userId,
+        receiverType: OwnerType.USER,
+      },
+    );
+    await assertTurnipCount(userId, turnipCount);
   });
 });
 
@@ -71,37 +70,28 @@ describe.each([
   { timeElapsed: USER_FORAGE_COOLDOWN_MS - 1 },
 ])('user forages but encounters cooldown', async ({ timeElapsed }) => {
   test('user cannot forage again due to cooldown', async ({ userId }) => {
-    vi.spyOn(Math, 'random').mockReturnValue(0);
-    expect(await getTurnipCount(userId)).toBe(0);
+    mockRandom(0);
 
-    const firstResult = await TurnipQueries.forageTurnips(env.db, { userId });
-    expect(firstResult.isOk()).toBe(true);
-    expect(await getTurnipCount(userId)).toBe(1);
+    await expectOk(TurnipQueries.forageTurnips(env.db, { userId }));
+    await assertTurnipCount(userId, 1);
 
     shiftTime(timeElapsed);
 
-    const secondResult = await TurnipQueries.forageTurnips(env.db, { userId });
-    expect(secondResult.isErr()).toBe(true);
-
-    const error = secondResult._unsafeUnwrapErr();
+    const error = await expectErr(TurnipQueries.forageTurnips(env.db, { userId }));
     assert(error instanceof ForageOnCooldownError);
-    expect(error.type).toBe(QueryError.ForageOnCooldown);
     expect(error.remainingCooldown).toBe(USER_FORAGE_COOLDOWN_MS - timeElapsed);
-    expect(await getTurnipCount(userId)).toBe(1);
+    await assertTurnipCount(userId, 1);
   });
 });
 
 test('user forages and can forage again after cooldown', async ({ userId }) => {
-  vi.spyOn(Math, 'random').mockReturnValue(0);
-  expect(await getTurnipCount(userId)).toBe(0);
+  mockRandom(0);
 
-  const firstResult = await TurnipQueries.forageTurnips(env.db, { userId });
-  expect(firstResult.isOk()).toBe(true);
-  expect(await getTurnipCount(userId)).toBe(1);
+  await expectOk(TurnipQueries.forageTurnips(env.db, { userId }));
+  await assertTurnipCount(userId, 1);
 
   shiftTime(USER_FORAGE_COOLDOWN_MS);
 
-  const secondResult = await TurnipQueries.forageTurnips(env.db, { userId });
-  expect(secondResult.isOk()).toBe(true);
-  expect(await getTurnipCount(userId)).toBe(2);
+  await expectOk(TurnipQueries.forageTurnips(env.db, { userId }));
+  await assertTurnipCount(userId, 2);
 });

@@ -2,13 +2,14 @@ import { env } from 'cloudflare:test';
 import { assert, expect } from 'vitest';
 
 import { OriginType, OwnerType } from '@/models/constants';
+import type { GuildTurnip } from '@/models/guild-turnip';
 import { getSurveyGuild } from '@/models/queries/guild-turnip';
 import { getTurnipInventory, prepareCreateTurnips } from '@/models/queries/turnip';
 import type { Turnip } from '@/models/turnip';
 import type { TurnipTransaction } from '@/models/turnip-transactions';
 import { batch, getOne } from '@/utils/d1';
 
-export async function verifyTurnips(
+export async function assertTurnipsMatch(
   t: Turnip | Turnip[],
   expectedTurnip: Partial<Turnip>,
   expectedTransaction: Partial<TurnipTransaction>,
@@ -48,14 +49,24 @@ export async function seedTurnips(userId: string, count = 1): Promise<Turnip[]> 
   return turnips;
 }
 
-export async function getTurnipCount(userId: string): Promise<number> {
+export async function assertTurnipCount(userId: string, count: number) {
   const turnipCounts = await getTurnipInventory(env.db, { userId });
-  return turnipCounts.reduce((total, count) => total + count.count, 0);
+  const total = turnipCounts.reduce((total, count) => total + count.count, 0);
+  assert(total === count);
 }
 
-export async function getGuildCounts(userId: string, guildId: string) {
+export async function assertGuildTurnipCount(
+  userId: string,
+  guildId: string,
+  count: {
+    guildPlantedCount?: number;
+    userPlantedCount?: number;
+    remainingHarvestsCount?: number;
+    unripeTurnips?: GuildTurnip[];
+  },
+) {
   const result = await getSurveyGuild(env.db, { userId, guildId });
 
   assert(result.isOk());
-  return result.value;
+  expect(result.value).toMatchObject(count);
 }
