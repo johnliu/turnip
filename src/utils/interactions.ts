@@ -32,43 +32,22 @@ export function renderEmbed(): ExpandRecursively<APIInteractionResponseChannelMe
   };
 }
 
-enum ResponseType {
-  MESSAGE = 0,
-  EMBEDS = 1,
-}
-
 class ResponseBuilder {
-  responseType: ResponseType;
+  flags = 0;
+  content = null;
+  embeds = null;
 
-  constructor(responseType: ResponseType) {
-    this.responseType = responseType;
+  setEphemeral(): this {
+    this.flags = this.flags & MessageFlags.Ephemeral;
+    return this;
   }
 
-  build() {
+  build(): APIInteractionResponseChannelMessageWithSource {
     return {
       type: InteractionResponseType.ChannelMessageWithSource,
       data: {
-
+        flags: this.flags
       }
     }
-  }
-}
-
-class MessageBuilder extends ResponseBuilder {
-  message?: string;
-
-  constructor() {
-    super(ResponseType.MESSAGE);
-  }
-
-  setMessage(message: string): this {
-    this.message = message;
-    return this;
-  }
-}
-
-class EmbedBuilder extends ResponseBuilder {
-  constructor() {
-    super(ResponseType.EMBEDS);
   }
 }
