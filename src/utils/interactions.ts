@@ -1,4 +1,5 @@
 import {
+  type APIEmbed,
   type APIInteractionResponseChannelMessageWithSource,
   InteractionResponseType,
   MessageFlags,
@@ -34,20 +35,54 @@ export function renderEmbed(): ExpandRecursively<APIInteractionResponseChannelMe
 
 class ResponseBuilder {
   flags = 0;
-  content = null;
-  embeds = null;
+  content?: string;
+  embeds?: APIEmbed[];
+
+  setMessage(content: string): this {
+    this.content = content;
+    return this;
+  }
 
   setEphemeral(): this {
     this.flags = this.flags & MessageFlags.Ephemeral;
     return this;
   }
 
+  addEmbed(): EmbedBuilder {
+    return new EmbedBuilder(this);
+  }
+
   build(): APIInteractionResponseChannelMessageWithSource {
     return {
       type: InteractionResponseType.ChannelMessageWithSource,
       data: {
+        content: this.content,
         flags: this.flags
       }
     }
+  }
+}
+
+class EmbedBuilder {
+  title?: string;
+  description?: string;
+  color?: number;
+
+  responseBuilder: ResponseBuilder;
+
+  constructor(responseBuilder: ResponseBuilder) {
+    this.responseBuilder = responseBuilder;
+  }
+
+  complete(): ResponseBuilder {
+    if (this.responseBuilder.embeds == null) {
+      this.responseBuilder.embeds = [];
+    }
+
+    this.responseBuilder.embeds.push({
+      title: this.title,
+      description: this.description,
+    })
+    return this.responseBuilder;
   }
 }
