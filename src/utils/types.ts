@@ -4,3 +4,11 @@ export function assertNotNull<T>(value: T | null | undefined): T {
   }
   return value;
 }
+
+export type ExpandRecursively<T> = T extends (...args: infer A) => infer R
+  ? (...args: ExpandRecursively<A>) => ExpandRecursively<R>
+  : T extends object
+    ? T extends infer O
+      ? { [K in keyof O]: ExpandRecursively<O[K]> }
+      : never
+    : T;
