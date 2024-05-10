@@ -1,12 +1,13 @@
 import { env } from 'cloudflare:test';
 import { assert, expect } from 'vitest';
 
-import { OriginType, OwnerType } from '@/models/constants';
+import { OriginType, OwnerType, TURNIP_HARVESTABLE_AFTER_MS } from '@/models/constants';
 import type { GuildTurnip } from '@/models/guild-turnip';
-import { getSurveyGuild } from '@/models/queries/guild-turnip';
+import { getSurveyGuild, prepareCreateGuildTurnip } from '@/models/queries/guild-turnip';
 import { getTurnipInventory, prepareCreateTurnips } from '@/models/queries/turnip';
 import type { Turnip } from '@/models/turnip';
 import type { TurnipTransaction } from '@/models/turnip-transactions';
+import { first } from '@/utils/arrays';
 import { batch, getOne } from '@/utils/d1';
 
 export async function assertTurnipsMatch(
@@ -49,10 +50,56 @@ export async function seedTurnips(userId: string, count = 1): Promise<Turnip[]> 
   return turnips;
 }
 
+export async function seedGuildTurnip({
+  guildId,
+  harvestableAt,
+  harvestsRemaining,
+  userId,
+}: {
+  guildId: string;
+  harvestableAt: number;
+  harvestsRemaining: number;
+  userId: string;
+}) {
+  const now = new Date().getTime();
+
+  const [turnips, _transactions] = await batch(
+    env.db,
+    prepareCreateTurnips(env.db, {
+      count: 1,
+      createdAt: now,
+      originId: null,
+      originType: OriginType.FORAGED,
+      parentId: null,
+      ownerId: guildId,
+      ownerType: OwnerType.GUILD,
+    }),
+  );
+  const turnip = first(turnips);
+  assert(turnip != null);
+
+  const [guildTurnip] = await batch(env.db, [
+    prepareCreateGuildTurnip(env.db, {
+      guildId,
+      turnipId: turnip.id,
+      harvestableAt,
+      harvestsRemaining,
+      planterId: userId,
+      plantedAt: harvestableAt - TURNIP_HARVESTABLE_AFTER_MS,
+    }),
+  ]);
+  assert(guildTurnip != null);
+
+  return {
+    turnip,
+    guildTurnip,
+  };
+}
+
 export async function assertTurnipCount(userId: string, count: number) {
   const turnipCounts = await getTurnipInventory(env.db, { userId });
   const total = turnipCounts.reduce((total, count) => total + count.count, 0);
-  assert(total === count);
+  assert(total === count, `Expected turnip count to be: ${count}, got ${total}`);
 }
 
 export async function assertGuildTurnipCount(

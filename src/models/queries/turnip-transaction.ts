@@ -2,6 +2,7 @@ import { v1 as uuid } from 'uuid';
 
 import { OwnerType, USER_FORAGE_COOLDOWN_MS, USER_HARVEST_COOLDOWN_MS } from '@/models/constants';
 import type { TurnipTransaction } from '@/models/turnip-transactions';
+import { first } from '@/utils/arrays';
 import {
   type Statement,
   makeInsertManyStatement,
@@ -46,8 +47,8 @@ export function prepareGetLastHarvest(
     timestamp: number;
   },
 ): Statement<number> {
-  return makeOneStatement<number>(
-    db
+  return {
+    statement: db
       .prepare(
         `
       SELECT createdAt FROM TurnipTransaction
@@ -66,7 +67,9 @@ export function prepareGetLastHarvest(
         OwnerType.USER,
         params.timestamp - USER_HARVEST_COOLDOWN_MS,
       ),
-  );
+    transformer: (response: D1Result) =>
+      (first(response.results) as { createdAt: number })?.createdAt,
+  };
 }
 
 export async function getLastForage(

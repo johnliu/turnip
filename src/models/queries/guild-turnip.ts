@@ -10,6 +10,7 @@ import {
   TURNIP_HARVESTABLE_AMOUNT_RANGE,
   TurnipType,
   USER_HARVEST_AMOUNT_RANGE,
+  USER_HARVEST_COOLDOWN_MS,
 } from '@/models/constants';
 import type { GuildTurnip } from '@/models/guild-turnip';
 import {
@@ -216,7 +217,7 @@ function prepareGetHarvestableTurnip(
         `
         SELECT * FROM GuildTurnip
         WHERE guildId = ?
-          AND harvestableAt < ?
+          AND harvestableAt <= ?
           AND harvestsRemaining > ?
         ORDER BY harvestableAt ASC
         LIMIT 1
@@ -250,12 +251,10 @@ export async function harvestTurnips(
   }
 
   if (lastHarvestedTimestamp != null) {
-    return err(
-      new HarvestOnCooldownError(lastHarvestedTimestamp + TURNIP_HARVESTABLE_AFTER_MS - now),
-    );
+    return err(new HarvestOnCooldownError(lastHarvestedTimestamp + USER_HARVEST_COOLDOWN_MS - now));
   }
 
-  const harvests = Math.max(
+  const harvests = Math.min(
     randomRange(...USER_HARVEST_AMOUNT_RANGE),
     harvestableTurnip.harvestsRemaining,
   );

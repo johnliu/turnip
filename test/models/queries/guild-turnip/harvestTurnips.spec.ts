@@ -1,7 +1,13 @@
 import { env } from 'cloudflare:test';
-import { test as base, beforeEach, describe, expect } from 'vitest';
+import { assert, test as base, beforeEach, describe, expect } from 'vitest';
 
-import { OwnerType, QueryError, TURNIP_HARVESTABLE_AFTER_MS } from '@/models/constants';
+import {
+  HarvestOnCooldownError,
+  OriginType,
+  OwnerType,
+  QueryError,
+  USER_HARVEST_COOLDOWN_MS,
+} from '@/models/constants';
 import GuildTurnipQueries from '@/models/queries/guild-turnip';
 
 import { expectErr, expectOk } from '../../../utils/queries';
@@ -9,7 +15,7 @@ import {
   assertGuildTurnipCount,
   assertTurnipCount,
   assertTurnipsMatch,
-  seedTurnips,
+  seedGuildTurnip,
 } from '../../../utils/queries/turnip-utils';
 import { mockRandom } from '../../../utils/random';
 import { generateSnowflake } from '../../../utils/snowflake';
@@ -31,146 +37,190 @@ beforeEach<Context>(async (context) => {
   await assertTurnipCount(context.userId, 0);
 });
 
-// user harvests turnip
-// - user harvests turnip based on random
-// - harvested turnips look correct
-// - harvested turnips have transactions
-// - harvested turnip decrements harvest count correctly
-
-// user harvests turnip but guild has no harvestable turnips
-
-// user harvests turnip but guild has no harvestable turnips but turnips become harvestable
-
-// user harvests turnip twice but second time is on cooldown
-
-// user harvests turnip twice but second time is on cooldown and then cooldown ends
-
-test('user harvests turnip but no more harvests', () => {});
-
-test('user plants turnip but has no turnip to plant', async ({ userId, guildId }) => {
-  const error = await expectErr(GuildTurnipQueries.plantTurnip(env.db, { userId, guildId }));
-  expect(error.type).toBe(QueryError.NoTurnipsError);
-
-  await assertGuildTurnipCount(userId, guildId, {
-    guildPlantedCount: 0,
-  });
-});
-
 describe.each([
-  { random: 0, expectedHarvests: 8 },
-  { random: 1, expectedHarvests: 12 },
-])('user plants turnip with random $random value', ({ random, expectedHarvests }) => {
-  test('user plants turnip', async ({ userId, guildId, timestamp }) => {
-    mockRandom(random);
+  { random: 0, harvestsRemaining: 1, expectedHarvests: 1 },
+  { random: 1, harvestsRemaining: 1, expectedHarvests: 1 },
+  { random: 0, harvestsRemaining: 12, expectedHarvests: 1 },
+  { random: 1, harvestsRemaining: 12, expectedHarvests: 3 },
+])(
+  'user harvests turnip with different randoms',
+  ({ random, harvestsRemaining, expectedHarvests }) => {
+    test('user harvests $expectedHarvests turnips', async ({ userId, guildId, timestamp }) => {
+      mockRandom(random);
 
-    const [oldestTurnip] = await seedTurnips(userId);
-    await assertTurnipCount(userId, 1);
+      const { guildTurnip } = await seedGuildTurnip({
+        guildId,
+        userId,
+        harvestableAt: timestamp,
+        harvestsRemaining: harvestsRemaining,
+      });
+      await assertGuildTurnipCount(userId, guildId, {
+        guildPlantedCount: 1,
+        remainingHarvestsCount: harvestsRemaining,
+        unripeTurnips: [],
+      });
 
-    const nextTimestamp = shiftTime(10);
-
-    const { guildTurnip, turnip } = await expectOk(
-      GuildTurnipQueries.plantTurnip(env.db, { userId, guildId }),
-    );
-    expect(guildTurnip).toMatchObject({
-      guildId,
-      turnipId: oldestTurnip.id,
-      harvestableAt: nextTimestamp + TURNIP_HARVESTABLE_AFTER_MS,
-      harvestsRemaining: expectedHarvests,
-      planterId: userId,
-      plantedAt: nextTimestamp,
+      const { harvestedTurnips } = await expectOk(
+        GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }),
+      );
+      await assertTurnipCount(userId, expectedHarvests);
+      assertTurnipsMatch(
+        harvestedTurnips,
+        {
+          createdAt: timestamp,
+          originId: guildId,
+          originType: OriginType.HARVEST,
+          parentId: guildId,
+          ownerId: userId,
+          ownerType: OwnerType.USER,
+          ownedAt: timestamp,
+        },
+        {
+          createdAt: timestamp,
+          senderId: guildId,
+          senderType: OwnerType.GUILD,
+          receiverId: userId,
+          receiverType: OwnerType.GUILD,
+        },
+      );
     });
-    assertTurnipsMatch(
-      turnip,
-      {
-        createdAt: timestamp,
-        ownerId: guildId,
-        ownerType: OwnerType.GUILD,
-        ownedAt: nextTimestamp,
-      },
-      {
-        createdAt: nextTimestamp,
-        turnipId: oldestTurnip.id,
-        senderId: userId,
-        senderType: OwnerType.USER,
-        receiverId: guildId,
-        receiverType: OwnerType.GUILD,
-      },
-    );
+  },
+);
 
-    await assertTurnipCount(userId, 0);
-    await assertGuildTurnipCount(userId, guildId, {
-      guildPlantedCount: 1,
-      userPlantedCount: 1,
-      remainingHarvestsCount: 0,
-      unripeTurnips: [guildTurnip],
-    });
-
-    shiftTime(TURNIP_HARVESTABLE_AFTER_MS);
-
-    await assertGuildTurnipCount(userId, guildId, {
-      guildPlantedCount: 1,
-      userPlantedCount: 1,
-      remainingHarvestsCount: expectedHarvests,
-      unripeTurnips: [],
-    });
-  });
-});
-
-test('user plants oldest turnip', async ({ userId, guildId, timestamp }) => {
+test('user harvests oldest turnip', async ({ userId, guildId, timestamp }) => {
   mockRandom(0);
 
-  const [oldestTurnip] = await seedTurnips(userId);
-  await assertTurnipCount(userId, 1);
-
-  shiftTime(10);
-
-  await seedTurnips(userId);
-  await assertTurnipCount(userId, 2);
+  const { guildTurnip: oldestGuildTurnip } = await seedGuildTurnip({
+    guildId,
+    userId,
+    harvestableAt: timestamp,
+    harvestsRemaining: 1,
+  });
 
   const nextTimestamp = shiftTime(10);
 
-  const { guildTurnip, turnip } = await expectOk(
-    GuildTurnipQueries.plantTurnip(env.db, { userId, guildId }),
-  );
-  expect(guildTurnip).toMatchObject({
+  await seedGuildTurnip({
     guildId,
-    turnipId: oldestTurnip.id,
-    harvestableAt: nextTimestamp + TURNIP_HARVESTABLE_AFTER_MS,
-    planterId: userId,
-    plantedAt: nextTimestamp,
+    userId,
+    harvestableAt: nextTimestamp,
+    harvestsRemaining: 1,
   });
-  assertTurnipsMatch(
-    turnip,
-    {
-      createdAt: timestamp,
-      ownerId: guildId,
-      ownerType: OwnerType.GUILD,
-      ownedAt: nextTimestamp,
-    },
-    {
-      createdAt: nextTimestamp,
-      turnipId: oldestTurnip.id,
-      senderId: userId,
-      senderType: OwnerType.USER,
-      receiverId: guildId,
-      receiverType: OwnerType.GUILD,
-    },
-  );
 
+  await assertGuildTurnipCount(userId, guildId, {
+    guildPlantedCount: 2,
+    remainingHarvestsCount: 2,
+    unripeTurnips: [],
+  });
+
+  const { guildTurnip } = await expectOk(
+    GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }),
+  );
   await assertTurnipCount(userId, 1);
+  expect(guildTurnip.turnipId).toBe(oldestGuildTurnip.turnipId);
+});
+
+test('user harvests turnip but no more harvests', async ({ userId, guildId, timestamp }) => {
+  await seedGuildTurnip({ guildId, userId, harvestableAt: timestamp, harvestsRemaining: 0 });
   await assertGuildTurnipCount(userId, guildId, {
     guildPlantedCount: 1,
-    userPlantedCount: 1,
+    remainingHarvestsCount: 0,
+    unripeTurnips: [],
+  });
+
+  const error = await expectErr(GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }));
+  expect(error.type).toBe(QueryError.NoTurnipsError);
+});
+
+test('user harvests turnip but unripe', async ({ userId, guildId, timestamp }) => {
+  mockRandom(0);
+
+  const { guildTurnip } = await seedGuildTurnip({
+    guildId,
+    userId,
+    harvestableAt: timestamp + 1,
+    harvestsRemaining: 1,
+  });
+  await assertGuildTurnipCount(userId, guildId, {
+    guildPlantedCount: 1,
     remainingHarvestsCount: 0,
     unripeTurnips: [guildTurnip],
   });
 
-  shiftTime(TURNIP_HARVESTABLE_AFTER_MS);
+  const error = await expectErr(GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }));
+  expect(error.type).toBe(QueryError.NoTurnipsError);
+
+  // becomes ripe
+  shiftTime(1);
 
   await assertGuildTurnipCount(userId, guildId, {
     guildPlantedCount: 1,
-    userPlantedCount: 1,
-    remainingHarvestsCount: 8,
+    remainingHarvestsCount: 1,
     unripeTurnips: [],
   });
+  await expectOk(GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }));
+  await assertTurnipCount(userId, 1);
+});
+
+describe.each([
+  { timeElapsed: 0 },
+  { timeElapsed: 1 },
+  { timeElapsed: USER_HARVEST_COOLDOWN_MS - 1 },
+])('user harvests turnip but encounters cooldown', ({ timeElapsed }) => {
+  test('user cannot harvest again due to cooldown', async ({ userId, guildId, timestamp }) => {
+    mockRandom(0);
+
+    await seedGuildTurnip({
+      guildId,
+      userId,
+      harvestableAt: timestamp,
+      harvestsRemaining: 2,
+    });
+    await assertGuildTurnipCount(userId, guildId, {
+      guildPlantedCount: 1,
+      remainingHarvestsCount: 2,
+      unripeTurnips: [],
+    });
+
+    await expectOk(GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }));
+    await assertTurnipCount(userId, 1);
+    await assertGuildTurnipCount(userId, guildId, { remainingHarvestsCount: 1 });
+
+    shiftTime(timeElapsed);
+
+    const error = await expectErr(GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }));
+    assert(error instanceof HarvestOnCooldownError);
+    expect(error.remainingCooldown).toBe(USER_HARVEST_COOLDOWN_MS - timeElapsed);
+    await assertTurnipCount(userId, 1);
+    await assertGuildTurnipCount(userId, guildId, { remainingHarvestsCount: 1 });
+  });
+});
+
+test('user harvests turnip and can harvest again after cooldown', async ({
+  userId,
+  guildId,
+  timestamp,
+}) => {
+  mockRandom(0);
+
+  await seedGuildTurnip({
+    guildId,
+    userId,
+    harvestableAt: timestamp,
+    harvestsRemaining: 2,
+  });
+  await assertGuildTurnipCount(userId, guildId, {
+    guildPlantedCount: 1,
+    remainingHarvestsCount: 2,
+    unripeTurnips: [],
+  });
+
+  await expectOk(GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }));
+  await assertTurnipCount(userId, 1);
+  await assertGuildTurnipCount(userId, guildId, { remainingHarvestsCount: 1 });
+
+  shiftTime(USER_HARVEST_COOLDOWN_MS);
+
+  await expectOk(GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }));
+  await assertTurnipCount(userId, 2);
+  await assertGuildTurnipCount(userId, guildId, { remainingHarvestsCount: 0 });
 });

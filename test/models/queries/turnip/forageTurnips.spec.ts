@@ -68,7 +68,7 @@ describe.each([
   { timeElapsed: 0 },
   { timeElapsed: 1 },
   { timeElapsed: USER_FORAGE_COOLDOWN_MS - 1 },
-])('user forages but encounters cooldown', async ({ timeElapsed }) => {
+])('user forages but encounters cooldown', ({ timeElapsed }) => {
   test('user cannot forage again due to cooldown', async ({ userId }) => {
     mockRandom(0);
 
