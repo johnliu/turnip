@@ -6,10 +6,11 @@ import {
   type APIUserApplicationCommandInteraction,
   InteractionType,
 } from 'discord-api-types/v10';
-import { Hono } from 'hono';
+import { type Context, Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
 import type { Bindings } from '@/constants';
+import { handleDebugMessage } from '@/interactions/debug';
 import handleFact from '@/interactions/fact';
 import { handleForage } from '@/interactions/forage';
 import { handleGiveChatInput, handleGiveMessage, handleGiveUser } from '@/interactions/give';
@@ -23,32 +24,37 @@ import { verifyKeyMiddleware } from '@/utils/hono';
 const app = new Hono<{ Bindings: Bindings }>();
 app.use(verifyKeyMiddleware);
 
-async function handleCommand(body: APIApplicationCommandInteraction, env: Bindings) {
+async function handleCommand(
+  body: APIApplicationCommandInteraction,
+  c: Context<{ Bindings: Bindings }>,
+) {
   switch (body.data.name) {
     case 'fact':
       return await handleFact();
     case 'survey':
-      return await handleSurvey(body as APIChatInputApplicationCommandInteraction, env);
+      return await handleSurvey(body as APIChatInputApplicationCommandInteraction, c.env);
     case 'plant':
-      return await handlePlant(body as APIChatInputApplicationCommandInteraction, env);
+      return await handlePlant(body as APIChatInputApplicationCommandInteraction, c.env);
     case 'harvest':
-      return await handleHarvest(body as APIChatInputApplicationCommandInteraction, env);
+      return await handleHarvest(body as APIChatInputApplicationCommandInteraction, c.env);
     case 'forage':
-      return await handleForage(body as APIChatInputApplicationCommandInteraction, env);
+      return await handleForage(body as APIChatInputApplicationCommandInteraction, c.env);
     case 'inventory':
-      return await handleInventory(body as APIChatInputApplicationCommandInteraction, env);
+      return await handleInventory(body as APIChatInputApplicationCommandInteraction, c.env);
     case 'give':
-      return await handleGiveChatInput(body as APIChatInputApplicationCommandInteraction, env);
+      return await handleGiveChatInput(body as APIChatInputApplicationCommandInteraction, c.env);
     case 'Give Turnip to User':
-      return await handleGiveMessage(body as APIMessageApplicationCommandInteraction, env);
+      return await handleGiveMessage(body as APIMessageApplicationCommandInteraction, c.env);
     case 'Give Turnip':
-      return await handleGiveUser(body as APIUserApplicationCommandInteraction, env);
+      return await handleGiveUser(body as APIUserApplicationCommandInteraction, c.env);
+    case 'Debug Message':
+      return await handleDebugMessage(body as APIMessageApplicationCommandInteraction, c);
     default:
       throw new HTTPException(400);
   }
 }
 
-async function handleInteraction(body: APIInteraction, env: Bindings) {
+async function handleInteraction(body: APIInteraction, env: Context<{ Bindings: Bindings }>) {
   const { type } = body;
 
   switch (type) {
@@ -62,7 +68,7 @@ async function handleInteraction(body: APIInteraction, env: Bindings) {
 }
 
 app.post('/', async (c) => {
-  return c.json(await handleInteraction(await c.req.json(), c.env));
+  return c.json(await handleInteraction(await c.req.json(), c));
 });
 
 export default app;

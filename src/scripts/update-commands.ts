@@ -18,17 +18,17 @@ type APIApplicationCommand =
 
 export async function updateCommands() {
   const commands: APIApplicationCommand[] = [
-    {
-      name: 'patch-notes',
-      description: "What's new with turnips.",
-      integration_types: [ApplicationIntegrationType.UserInstall],
-      contexts: [
-        InteractionContextType.Guild,
-        InteractionContextType.BotDM,
-        InteractionContextType.PrivateChannel,
-      ],
-      type: ApplicationCommandType.ChatInput,
-    },
+    // {
+    //   name: 'patch-notes',
+    //   description: "What's new with turnips.",
+    //   integration_types: [ApplicationIntegrationType.UserInstall],
+    //   contexts: [
+    //     InteractionContextType.Guild,
+    //     InteractionContextType.BotDM,
+    //     InteractionContextType.PrivateChannel,
+    //   ],
+    //   type: ApplicationCommandType.ChatInput,
+    // },
 
     {
       name: 'fact',
@@ -129,9 +129,25 @@ export async function updateCommands() {
     },
   ];
 
+  const debugCommands =
+    Bun.env.ENV === 'production'
+      ? []
+      : [
+          {
+            name: 'Debug Message',
+            integration_types: [ApplicationIntegrationType.UserInstall],
+            contexts: [
+              InteractionContextType.Guild,
+              InteractionContextType.BotDM,
+              InteractionContextType.PrivateChannel,
+            ],
+            type: ApplicationCommandType.Message,
+          },
+        ];
+
   await request({
     method: 'PUT',
     path: Routes.applicationCommands(env.DISCORD_APPLICATION_ID),
-    body: commands,
+    body: [...commands, ...debugCommands],
   });
 }

@@ -10,12 +10,12 @@ import {
 } from '@/models/constants';
 import TurnipQueries from '@/models/queries/turnip';
 
-import { expectErr, expectOk } from '../../../utils/queries';
-import { assertTurnipCount, assertTurnipsMatch } from '../../../utils/queries/turnip-utils';
-import { mockRandom } from '../../../utils/random';
-import { generateSnowflake } from '../../../utils/snowflake';
-import { shiftTime } from '../../../utils/time';
-import { freezeTime } from '../../../utils/time';
+import { expectErr, expectOk } from '@test/utils/queries';
+import { assertTurnipCount, assertTurnipsMatch } from '@test/utils/queries/turnip-utils';
+import { mockRandom } from '@test/utils/random';
+import { generateSnowflake } from '@test/utils/snowflake';
+import { shiftTime } from '@test/utils/time';
+import { freezeTime } from '@test/utils/time';
 
 interface Context {
   userId: string;

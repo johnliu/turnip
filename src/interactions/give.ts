@@ -12,34 +12,36 @@ import TurnipQueries from '@/models/queries/turnip';
 import { first } from '@/utils/arrays';
 import { renderContent } from '@/utils/interactions';
 import { assertNotNull } from '@/utils/types';
+import { renderError, renderGiveBack, renderGiveSelf, renderNoTurnips } from '@/views/give';
 
 async function handleGive(
   env: Bindings,
   senderId: string,
   receiverId: string,
 ): Promise<APIInteractionResponseChannelMessageWithSource> {
-  if (receiverId === env.DISCORD_APPLICATION_ID) {
-    return renderContent(`Aw thanks <@${senderId}>, but you can't give this turnip back to me.`);
-  }
+  return renderGiveBack(senderId, receiverId);
+  // if (receiverId === env.DISCORD_APPLICATION_ID) {
+  //   return renderContent(`Aw thanks <@${senderId}>, but you can't give this turnip back to me.`);
+  // }
 
-  if (receiverId === senderId) {
-    return renderContent(`Silly <@${senderId}>, you can't give a turnip to yourself!`);
-  }
+  // if (receiverId === senderId) {
+  //   return renderContent(`Silly <@${senderId}>, you can't give a turnip to yourself!`);
+  // }
 
-  const result = await TurnipQueries.giveTurnip(env.db, { senderId, receiverId });
-  if (result.isOk()) {
-    return renderContent(`<@${senderId}> gave a turnip to you <@${receiverId}>`);
-  }
+  // const result = await TurnipQueries.giveTurnip(env.db, { senderId, receiverId });
+  // if (result.isOk()) {
+  //   return renderContent(`<@${senderId}> gave a turnip to you <@${receiverId}>`);
+  // }
 
-  if (result.error.type === QueryError.NoTurnipsError) {
-    return renderContent(
-      `Woops, silly <@${senderId}>! You don't have any turnips to give. Try to \`/forage\` for some turnips.`,
-    );
-  }
+  // if (result.error.type === QueryError.NoTurnipsError) {
+  //   return renderContent(
+  //     `Woops, silly <@${senderId}>! You don't have any turnips to give. Try to \`/forage\` for some turnips.`,
+  //   );
+  // }
 
-  return renderContent(
-    `Sorry <@${senderId}>, looks like I wasn't able to give your turnip right now. Try again later.`,
-  );
+  // return renderContent(
+  //   `Sorry <@${senderId}>, looks like I wasn't able to give your turnip right now. Try again later.`,
+  // );
 }
 
 export async function handleGiveChatInput(

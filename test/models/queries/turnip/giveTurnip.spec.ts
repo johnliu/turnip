@@ -4,14 +4,14 @@ import { test as base, beforeEach, expect } from 'vitest';
 import { OwnerType, QueryError } from '@/models/constants';
 import TurnipQueries from '@/models/queries/turnip';
 
-import { expectErr, expectOk } from '../../../utils/queries';
+import { expectErr, expectOk } from '@test/utils/queries';
 import {
   assertTurnipCount,
   assertTurnipsMatch,
   seedTurnips,
-} from '../../../utils/queries/turnip-utils';
-import { generateSnowflake } from '../../../utils/snowflake';
-import { freezeTime, shiftTime } from '../../../utils/time';
+} from '@test/utils/queries/turnip-utils';
+import { generateSnowflake } from '@test/utils/snowflake';
+import { freezeTime, shiftTime } from '@test/utils/time';
 
 interface Context {
   userA: string;

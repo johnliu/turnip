@@ -181,3 +181,4 @@ dist
 wrangler.toml
 .dev.vars
 .wrangler/
+.cloudflared/

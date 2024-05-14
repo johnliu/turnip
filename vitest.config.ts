@@ -8,7 +8,10 @@ export default defineWorkersConfig(async () => {
 
   return {
     resolve: {
-      alias: [{ find: '@', replacement: path.resolve(__dirname, './src') }],
+      alias: [
+        { find: '@', replacement: path.resolve(__dirname, './src') },
+        { find: '@test', replacement: path.resolve(__dirname, './test') },
+      ],
     },
     test: {
       setupFiles: ['./test/setup.ts'],

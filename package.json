@@ -18,9 +18,11 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "dedent": "^1.5.3",
     "discord-interactions": "^3.4.0",
     "hono": "^4.1.2",
     "humanize-duration": "^3.31.0",
+    "inflection": "^3.0.0",
     "neverthrow": "^6.2.1",
     "uuid": "^9.0.1"
   },
@@ -30,7 +32,7 @@
     "dev": "bun wrangler dev",
     "test": "bun vitest",
     "tunnel": "cloudflared tunnel --url localhost:3000 --metrics localhost:54321",
-    "tunnel-url": "curl -s localhost:54321/quicktunnel | jq '.hostname' --raw-output",
+    "tunnel-url": "curl -s localhost:54321/quicktunnel | jq '\"https://\" + .hostname' --raw-output",
     "check": "bun biome check .",
     "scripts": "bun run src/scripts/index.ts"
   }

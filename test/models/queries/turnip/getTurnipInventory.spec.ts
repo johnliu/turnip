@@ -5,9 +5,9 @@ import { test as base, beforeEach, expect } from 'vitest';
 import { TurnipType } from '@/models/constants';
 import TurnipQueries from '@/models/queries/turnip';
 
-import { seedTurnips } from '../../../utils/queries/turnip-utils';
-import { generateSnowflake } from '../../../utils/snowflake';
-import { freezeTime } from '../../../utils/time';
+import { seedTurnips } from '@test/utils/queries/turnip-utils';
+import { generateSnowflake } from '@test/utils/snowflake';
+import { freezeTime } from '@test/utils/time';
 
 interface Context {
   userId: string;

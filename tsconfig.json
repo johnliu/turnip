@@ -9,9 +9,10 @@
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "allowJs": true,
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["src/*"],
+      "@test/*": ["test/*"]
     },
 
     // Bundler mode

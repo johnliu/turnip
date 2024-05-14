@@ -1,10 +1,10 @@
 import type { APIChatInputApplicationCommandInteraction } from 'discord-api-types/v10';
 
 import type { Bindings } from '@/constants';
-import { QueryError } from '@/models/constants';
+import { ForageOnCooldownError } from '@/models/constants';
 import TurnipQueries from '@/models/queries/turnip';
-import { renderContent } from '@/utils/interactions';
 import { assertNotNull } from '@/utils/types';
+import { renderError, renderForage, renderForageOnCooldown } from '@/views/forage';
 
 export async function handleForage(
   { member, user }: APIChatInputApplicationCommandInteraction,
@@ -14,13 +14,14 @@ export async function handleForage(
 
   const result = await TurnipQueries.forageTurnips(env.db, { userId });
 
-  if (result.isErr()) {
-    if (result.error.type === QueryError.ForageOnCooldown) {
-      return renderContent('You can only forage once a day! Try again tomorrow.');
-    }
+  return result.match(
+    (turnips) => renderForage(userId, turnips.length),
+    (error) => {
+      if (error instanceof ForageOnCooldownError) {
+        return renderForageOnCooldown(userId, error.remainingCooldown);
+      }
 
-    return renderContent("Oops! I wasn't able to forage for you. Please try again later.");
-  }
-
-  return renderContent(`You foraged ${result.value.length} turnips!`);
+      return renderError();
+    },
+  );
 }

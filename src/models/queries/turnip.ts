@@ -154,7 +154,7 @@ export async function giveTurnip(
   return receivedTurnip != null ? ok(receivedTurnip) : err(new MissingResultError('giveTurnip'));
 }
 
-type TurnipCount = {
+export type TurnipCount = {
   type: TurnipType;
   count: number;
 };

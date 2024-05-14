@@ -1,5 +1,7 @@
-import { renderContent } from '@/utils/interactions';
 import type { APIInteractionResponseChannelMessageWithSource } from 'discord-api-types/v10';
+
+import { randomChoice } from '@/utils/random';
+import { renderFact } from '@/views/facts';
 
 const TURNIP_FACTS = [
   'Turnips are a root vegetable commonly grown in temperate climates worldwide for their white, bulbous taproot.',
@@ -25,6 +27,5 @@ const TURNIP_FACTS = [
 ];
 
 export default function handleFact(): APIInteractionResponseChannelMessageWithSource {
-  const randomFact = TURNIP_FACTS[Math.floor(Math.random() * TURNIP_FACTS.length)];
-  return renderContent(randomFact);
+  return renderFact(randomChoice(TURNIP_FACTS));
 }
