@@ -1,6 +1,5 @@
 import dedent from 'dedent';
 import type { APIInteractionResponseChannelMessageWithSource } from 'discord-api-types/v10';
-import { inflect } from 'inflection';
 
 import {
   DEFAULT_EMBED_COLOR,
@@ -10,9 +9,11 @@ import {
   renderUnexpectedError,
 } from '@/views/base';
 
+const CLOWN_IMAGE =
+  'https://cdn.discordapp.com/attachments/1239849610856628247/1239849712010530878/clown.png';
+
 export function renderGive(senderId: string, receiverId: string) {
   return new ResponseBuilder()
-    .setEphemeral()
     .setMessage(`||<@${receiverId}>||`)
     .addEmbed()
     .withColor(DEFAULT_EMBED_COLOR)
@@ -21,7 +22,7 @@ export function renderGive(senderId: string, receiverId: string) {
       dedent`
         ### <@${senderId}> gave you a turnip <@${receiverId}>
 
-
+        Lucky you!
       `,
     )
     .complete()
@@ -61,6 +62,7 @@ export function renderGiveSelf(senderId: string): APIInteractionResponseChannelM
         :clown: :clown: :clown:
       `,
     )
+    .withImage(CLOWN_IMAGE)
     .complete()
     .build();
 }
@@ -82,6 +84,7 @@ export function renderNoTurnips(
         Maybe you should give some turnips to <@${senderId}> instead.
       `,
     )
+    .withFooter('Try foraging or harvesting for some turnips first.')
     .complete()
     .build();
 }

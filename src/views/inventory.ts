@@ -11,7 +11,7 @@ export function renderInventory(
 ): APIInteractionResponseChannelMessageWithSource {
   const total = turnipCounts.reduce((total, count) => total + count.count, 0);
 
-  const embedBuilder = new ResponseBuilder()
+  const builder = new ResponseBuilder()
     .addEmbed()
     .withColor(DEFAULT_EMBED_COLOR)
     .withThumbnail(DEFAULT_THUMBNAIL_URL);
@@ -19,10 +19,10 @@ export function renderInventory(
   const header = `### <@${userId}>'s Inventory`;
 
   if (total <= 1) {
-    embedBuilder.withFooter('Try foraging or harvesting for some turnips.');
+    builder.withFooter('Try foraging or harvesting for some turnips.');
 
     if (total === 0) {
-      embedBuilder.withDescription(
+      builder.withDescription(
         dedent`
           ${header}
 
@@ -32,7 +32,7 @@ export function renderInventory(
     }
 
     if (total === 1) {
-      embedBuilder.withDescription(
+      builder.withDescription(
         dedent`
           ${header}
 
@@ -41,24 +41,24 @@ export function renderInventory(
       );
     }
   } else {
-    embedBuilder.withDescription(
+    builder.withDescription(
       dedent`
         ${header}
 
-        You have ${total} ${inflect('turnips', total)}.
+        You have ${total} ${inflect('turnip', total)}.
       `,
     );
   }
 
   if (turnipCounts.length > 1) {
     for (const turnipCount of turnipCounts) {
-      embedBuilder.addField({
+      builder.addField({
         name: 'Standard',
-        value: `🧅 x${turnipCount.count}`,
+        value: `:onion: x${turnipCount.count}`,
         inline: turnipCounts.length > 1,
       });
     }
   }
 
-  return embedBuilder.complete().build();
+  return builder.complete().build();
 }

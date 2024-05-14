@@ -115,23 +115,20 @@ export function prepareGetUnripeTurnips(
   );
 }
 
+export type SurveyCount = {
+  guildPlantedCount: number;
+  userPlantedCount: number;
+  remainingHarvestsCount: number;
+  unripeTurnips: GuildTurnip[];
+};
+
 export async function getSurveyGuild(
   db: D1Database,
   params: {
     guildId: string;
     userId: string;
   },
-): Promise<
-  Result<
-    {
-      guildPlantedCount: number;
-      userPlantedCount: number;
-      remainingHarvestsCount: number;
-      unripeTurnips: GuildTurnip[];
-    },
-    MissingResultError
-  >
-> {
+): Promise<Result<SurveyCount, MissingResultError>> {
   const now = new Date().getTime();
   const [guildPlantedCount, userPlantedCount, remainingHarvestsCount, unripeTurnips] = await batch<
     [

@@ -46,7 +46,7 @@ Note: this will generate the other configs needed for local dev.
 To run Turnip locally, first start a tunnel
 
 ```sh
-$ bun tunnel
+$ bun scripts tunnel
 ...
 2024-03-25T12:16:10Z INF +--------------------------------------------------------------------------------------------+
 2024-03-25T12:16:10Z INF |  Your quick Tunnel has been created! Visit it at (it may take some time to be reachable):  |
@@ -73,10 +73,10 @@ Your worker has access to the following bindings:
 [wrangler:inf] Ready on http://localhost:3000
 ```
 
-Copy the address created from the quick tunnel and run in another terminal:
+Update your app with the tunnel url.
 
 ```sh
-$ bun scripts update-application https://<generated-url>.trycloudflare.com
+$ bun scripts update-application $(bun scripts tunnel-url)
 ...
 ```
 

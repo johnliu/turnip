@@ -10,38 +10,37 @@ import type { Bindings } from '@/constants';
 import { QueryError } from '@/models/constants';
 import TurnipQueries from '@/models/queries/turnip';
 import { first } from '@/utils/arrays';
-import { renderContent } from '@/utils/interactions';
 import { assertNotNull } from '@/utils/types';
-import { renderError, renderGiveBack, renderGiveSelf, renderNoTurnips } from '@/views/give';
+import {
+  renderError,
+  renderGive,
+  renderGiveBack,
+  renderGiveSelf,
+  renderNoTurnips,
+} from '@/views/give';
 
 async function handleGive(
   env: Bindings,
   senderId: string,
   receiverId: string,
 ): Promise<APIInteractionResponseChannelMessageWithSource> {
-  return renderGiveBack(senderId, receiverId);
-  // if (receiverId === env.DISCORD_APPLICATION_ID) {
-  //   return renderContent(`Aw thanks <@${senderId}>, but you can't give this turnip back to me.`);
-  // }
+  if (receiverId === env.DISCORD_APPLICATION_ID) {
+    return renderGiveBack(senderId, env.DISCORD_APPLICATION_ID);
+  }
 
-  // if (receiverId === senderId) {
-  //   return renderContent(`Silly <@${senderId}>, you can't give a turnip to yourself!`);
-  // }
+  if (receiverId === senderId) {
+    return renderGiveSelf(senderId);
+  }
 
-  // const result = await TurnipQueries.giveTurnip(env.db, { senderId, receiverId });
-  // if (result.isOk()) {
-  //   return renderContent(`<@${senderId}> gave a turnip to you <@${receiverId}>`);
-  // }
-
-  // if (result.error.type === QueryError.NoTurnipsError) {
-  //   return renderContent(
-  //     `Woops, silly <@${senderId}>! You don't have any turnips to give. Try to \`/forage\` for some turnips.`,
-  //   );
-  // }
-
-  // return renderContent(
-  //   `Sorry <@${senderId}>, looks like I wasn't able to give your turnip right now. Try again later.`,
-  // );
+  return (await TurnipQueries.giveTurnip(env.db, { senderId, receiverId })).match(
+    (_turnip) => renderGive(senderId, receiverId),
+    (error) => {
+      if (error.type === QueryError.NoTurnipsError) {
+        return renderNoTurnips(senderId, receiverId);
+      }
+      return renderError();
+    },
+  );
 }
 
 export async function handleGiveChatInput(

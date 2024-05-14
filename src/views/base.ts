@@ -4,6 +4,7 @@ import {
   type APIEmbedAuthor,
   type APIEmbedField,
   type APIEmbedFooter,
+  type APIEmbedImage,
   type APIEmbedThumbnail,
   type APIInteractionResponseChannelMessageWithSource,
   InteractionResponseType,
@@ -14,7 +15,7 @@ import {
 export const DEFAULT_EMBED_COLOR = 0x7cd77e;
 export const ERROR_EMBED_COLOR = 0xff4b4b;
 export const DEFAULT_THUMBNAIL_URL =
-  'https://cdn.discordapp.com/attachments/1215513337425821809/1237882835017404466/IMG_0314-removebg-preview.png?ex=663fe6ba&is=663e953a&hm=fd8487a15ee927a70c3044b763dd8dd6c2b040908e1720ee6e300e84e7587d11';
+  'https://cdn.discordapp.com/attachments/1239849610856628247/1239850025518108763/image.png';
 
 export class ResponseBuilder {
   flags = 0;
@@ -66,6 +67,7 @@ export class EmbedBuilder {
   thumbnail?: APIEmbedThumbnail;
   fields?: APIEmbedField[];
   footer?: APIEmbedFooter;
+  image?: APIEmbedImage;
 
   responseBuilder: ResponseBuilder;
 
@@ -103,6 +105,13 @@ export class EmbedBuilder {
     return this;
   }
 
+  withImage(url: string): this {
+    this.image = {
+      url,
+    };
+    return this;
+  }
+
   withFooter(text: string): this {
     this.footer = {
       text: text,
@@ -124,6 +133,7 @@ export class EmbedBuilder {
       author: this.author,
       color: this.color,
       thumbnail: this.thumbnail,
+      image: this.image,
       footer: this.footer,
       fields: this.fields,
     });

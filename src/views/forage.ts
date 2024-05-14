@@ -1,8 +1,8 @@
 import dedent from 'dedent';
 import type { APIInteractionResponseChannelMessageWithSource } from 'discord-api-types/v10';
-import humanizeDuration from 'humanize-duration';
 import { inflect } from 'inflection';
 
+import { duration } from '@/utils/humanize';
 import { randomChoice } from '@/utils/random';
 import {
   DEFAULT_EMBED_COLOR,
@@ -59,7 +59,7 @@ export function renderForageOnCooldown(
         Save some for the rest of us..
       `,
     )
-    .withFooter(`Try again in ${humanizeDuration(remainingCooldown)}.`)
+    .withFooter(`Try again in ${duration(remainingCooldown)}.`)
     .complete()
     .build();
 }

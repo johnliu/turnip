@@ -3,8 +3,8 @@ import type { APIChatInputApplicationCommandInteraction } from 'discord-api-type
 import type { Bindings } from '@/constants';
 import { QueryError } from '@/models/constants';
 import GuildTurnipQueries from '@/models/queries/guild-turnip';
-import { renderContent } from '@/utils/interactions';
 import { assertNotNull } from '@/utils/types';
+import { renderError, renderNoTurnips, renderPlant } from '@/views/plant';
 
 export async function handlePlant(
   { guild_id, member }: APIChatInputApplicationCommandInteraction,
@@ -14,25 +14,18 @@ export async function handlePlant(
   const userId = assertNotNull(member?.user?.id);
 
   const plantResult = await GuildTurnipQueries.plantTurnip(env.db, { guildId, userId });
+  const surveyResult = (await GuildTurnipQueries.getSurveyGuild(env.db, { guildId, userId })).match(
+    (result) => result,
+    (_) => null,
+  );
 
-  if (plantResult.isErr()) {
-    if (plantResult.error.type === QueryError.NoTurnipsError) {
-      return renderContent(
-        'You have no turnips to plant. Try `/harvest`ing for some in this server.',
-      );
-    }
-
-    return renderContent("Oops! I wasn't able to plant a turnip here. Try again later.");
-  }
-
-  const surveyResult = await GuildTurnipQueries.getSurveyGuild(env.db, { guildId, userId });
-
-  if (surveyResult.isErr()) {
-    return renderContent('You planted a turnip in this server!');
-  }
-
-  const { guildPlantedCount, userPlantedCount, remainingHarvestsCount } = surveyResult.value;
-  return renderContent(
-    `You planted a turnip in this server! There are ${guildPlantedCount} turnips in this server. You contributed ${userPlantedCount} turnips.`,
+  return plantResult.match(
+    () => renderPlant(userId, surveyResult),
+    (error) => {
+      if (error.type === QueryError.NoTurnipsError) {
+        return renderNoTurnips(userId);
+      }
+      return renderError();
+    },
   );
 }
