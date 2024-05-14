@@ -41,3 +41,8 @@ CREATE TABLE IF NOT EXISTS GuildTurnip (
   plantedAt INTEGER,
   PRIMARY KEY (guildId, turnipId)
 );
+
+CREATE TABLE IF NOT EXISTS UserSettings (
+  id TEXT,
+  settings TEXT
+);

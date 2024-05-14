@@ -14,6 +14,7 @@ import {
 
 export const DEFAULT_EMBED_COLOR = 0x7cd77e;
 export const ERROR_EMBED_COLOR = 0xff4b4b;
+export const INFO_EMBED_COLOR = 0x61a6c2;
 export const DEFAULT_THUMBNAIL_URL =
   'https://cdn.discordapp.com/attachments/1239849610856628247/1239850025518108763/image.png';
 
@@ -69,9 +70,9 @@ export class EmbedBuilder {
   footer?: APIEmbedFooter;
   image?: APIEmbedImage;
 
-  responseBuilder: ResponseBuilder;
+  responseBuilder: ResponseBuilder | undefined;
 
-  constructor(responseBuilder: ResponseBuilder) {
+  constructor(responseBuilder?: ResponseBuilder) {
     this.responseBuilder = responseBuilder;
   }
 
@@ -126,8 +127,17 @@ export class EmbedBuilder {
   }
 
   complete(): ResponseBuilder {
+    if (this.responseBuilder == null) {
+      throw new Error('Cannot complete without a response builder.');
+    }
+
     this.responseBuilder.embeds = this.responseBuilder.embeds ?? [];
-    this.responseBuilder.embeds.push({
+    this.responseBuilder.embeds.push(this.build());
+    return this.responseBuilder;
+  }
+
+  build(): APIEmbed {
+    return {
       title: this.title,
       description: this.description,
       author: this.author,
@@ -136,8 +146,7 @@ export class EmbedBuilder {
       image: this.image,
       footer: this.footer,
       fields: this.fields,
-    });
-    return this.responseBuilder;
+    };
   }
 }
 

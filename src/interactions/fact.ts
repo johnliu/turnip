@@ -26,6 +26,6 @@ const TURNIP_FACTS = [
   "Despite their name, turnips are not a primary ingredient in the traditional British dish 'turnip cake,' which is actually made from radishes.",
 ];
 
-export default function handleFact(): APIInteractionResponseChannelMessageWithSource {
+export function handleFact(): APIInteractionResponseChannelMessageWithSource {
   return renderFact(randomChoice(TURNIP_FACTS));
 }

@@ -9,14 +9,13 @@ import {
   RouteBases,
   Routes,
 } from 'discord-api-types/v10';
-import type { Context } from 'hono';
 
-import type { Bindings } from '@/constants';
+import type { HonoContext } from '@/utils/hono';
 import { assertNotNull } from '@/utils/types';
 
 export async function handleDebugMessage(
   interaction: APIMessageApplicationCommandInteraction,
-  c: Context<{ Bindings: Bindings }>,
+  context: HonoContext,
 ): Promise<APIInteractionResponseDeferredChannelMessageWithSource> {
   const userId = assertNotNull(interaction.member?.user.id ?? interaction.user?.id);
 
@@ -27,7 +26,7 @@ export async function handleDebugMessage(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bot ${c.env.DISCORD_BOT_TOKEN}`,
+        Authorization: `Bot ${context.env.DISCORD_BOT_TOKEN}`,
       },
       body: JSON.stringify({
         recipient_id: userId,
@@ -68,21 +67,21 @@ export async function handleDebugMessage(
     await fetch(RouteBases.api + Routes.channelMessages(privateChannelData.id), {
       method: 'POST',
       headers: {
-        Authorization: `Bot ${c.env.DISCORD_BOT_TOKEN}`,
+        Authorization: `Bot ${context.env.DISCORD_BOT_TOKEN}`,
       },
       body: formData,
     });
 
     await fetch(
       RouteBases.api +
-        Routes.webhookMessage(c.env.DISCORD_APPLICATION_ID, interaction.token, '@original'),
+        Routes.webhookMessage(context.env.DISCORD_APPLICATION_ID, interaction.token, '@original'),
       {
         method: 'DELETE',
       },
     );
   };
 
-  c.executionCtx.waitUntil(updateWebhook());
+  context.executionCtx.waitUntil(updateWebhook());
 
   return {
     type: InteractionResponseType.DeferredChannelMessageWithSource,

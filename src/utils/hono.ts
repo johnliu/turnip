@@ -1,5 +1,7 @@
+import type { D1Database } from '@cloudflare/workers-types';
+import type { APIUser } from 'discord-api-types/v10';
 import { verifyKey } from 'discord-interactions';
-import type { MiddlewareHandler } from 'hono';
+import type { Context, MiddlewareHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
 export const verifyKeyMiddleware: MiddlewareHandler = async (c, next) => {
@@ -20,3 +22,19 @@ export const verifyKeyMiddleware: MiddlewareHandler = async (c, next) => {
 
   await next();
 };
+export type Bindings = {
+  db: D1Database;
+  DISCORD_APPLICATION_ID: string;
+  DISCORD_PUBLIC_KEY: string;
+  DISCORD_BOT_TOKEN: string;
+  KILLSWITCH: string;
+};
+
+export type Variables = {
+  user: APIUser | undefined;
+};
+
+export type HonoContext = Context<{
+  Bindings: Bindings;
+  Variables: Variables;
+}>;

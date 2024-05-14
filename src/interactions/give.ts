@@ -6,10 +6,10 @@ import type {
   APIUserApplicationCommandInteraction,
 } from 'discord-api-types/v10';
 
-import type { Bindings } from '@/constants';
 import { QueryError } from '@/models/constants';
 import TurnipQueries from '@/models/queries/turnip';
 import { first } from '@/utils/arrays';
+import type { HonoContext } from '@/utils/hono';
 import { assertNotNull } from '@/utils/types';
 import {
   renderError,
@@ -20,19 +20,19 @@ import {
 } from '@/views/give';
 
 async function handleGive(
-  env: Bindings,
+  context: HonoContext,
   senderId: string,
   receiverId: string,
 ): Promise<APIInteractionResponseChannelMessageWithSource> {
-  if (receiverId === env.DISCORD_APPLICATION_ID) {
-    return renderGiveBack(senderId, env.DISCORD_APPLICATION_ID);
+  if (receiverId === context.env.DISCORD_APPLICATION_ID) {
+    return renderGiveBack(senderId, context.env.DISCORD_APPLICATION_ID);
   }
 
   if (receiverId === senderId) {
     return renderGiveSelf(senderId);
   }
 
-  return (await TurnipQueries.giveTurnip(env.db, { senderId, receiverId })).match(
+  return (await TurnipQueries.giveTurnip(context.env.db, { senderId, receiverId })).match(
     (_turnip) => renderGive(senderId, receiverId),
     (error) => {
       if (error.type === QueryError.NoTurnipsError) {
@@ -44,35 +44,34 @@ async function handleGive(
 }
 
 export async function handleGiveChatInput(
-  { data, member, user }: APIChatInputApplicationCommandInteraction,
-  env: Bindings,
+  { data }: APIChatInputApplicationCommandInteraction,
+  context: HonoContext,
 ) {
-  const senderId = assertNotNull(member?.user.id ?? user?.id);
-
+  const senderId = assertNotNull(context.var.user?.id);
   const receiver = first(data.options) as
     | APIApplicationCommandInteractionDataUserOption
     | undefined;
   const receiverId = assertNotNull(receiver?.value);
 
-  return await handleGive(env, senderId, receiverId);
+  return await handleGive(context, senderId, receiverId);
 }
 
 export async function handleGiveMessage(
-  { data, member, user }: APIMessageApplicationCommandInteraction,
-  env: Bindings,
+  { data }: APIMessageApplicationCommandInteraction,
+  context: HonoContext,
 ) {
-  const senderId = assertNotNull(member?.user.id ?? user?.id);
+  const senderId = assertNotNull(context.var.user?.id);
   const receiverId = data.resolved.messages[data.target_id].author.id;
 
-  return await handleGive(env, senderId, receiverId);
+  return await handleGive(context, senderId, receiverId);
 }
 
 export async function handleGiveUser(
-  { data, member, user }: APIUserApplicationCommandInteraction,
-  env: Bindings,
+  { data }: APIUserApplicationCommandInteraction,
+  context: HonoContext,
 ) {
-  const senderId = assertNotNull(member?.user.id ?? user?.id);
+  const senderId = assertNotNull(context.var.user?.id);
   const receiverId = data.target_id;
 
-  return await handleGive(env, senderId, receiverId);
+  return await handleGive(context, senderId, receiverId);
 }

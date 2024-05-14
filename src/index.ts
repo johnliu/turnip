@@ -6,67 +6,87 @@ import {
   type APIUserApplicationCommandInteraction,
   InteractionType,
 } from 'discord-api-types/v10';
-import { type Context, Hono } from 'hono';
+import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
 
-import type { Bindings } from '@/constants';
 import { handleDebugMessage } from '@/interactions/debug';
-import handleFact from '@/interactions/fact';
+import { handleFact } from '@/interactions/fact';
 import { handleForage } from '@/interactions/forage';
 import { handleGiveChatInput, handleGiveMessage, handleGiveUser } from '@/interactions/give';
 import { handleHarvest } from '@/interactions/harvest';
 import { handleInventory } from '@/interactions/inventory';
+import { handlePatchNotes, injectPatchNotes } from '@/interactions/patch-notes';
 import { handlePing } from '@/interactions/ping';
 import { handlePlant } from '@/interactions/plant';
 import { handleSurvey } from '@/interactions/survey';
 import { verifyKeyMiddleware } from '@/utils/hono';
+import type { Bindings, HonoContext, Variables } from '@/utils/hono';
 import { renderOffline } from '@/views/offline';
 
-const app = new Hono<{ Bindings: Bindings }>();
+const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 app.use(verifyKeyMiddleware);
 
-async function handleCommand(
-  body: APIApplicationCommandInteraction,
-  c: Context<{ Bindings: Bindings }>,
-) {
-  if (c.env.KILLSWITCH === 'true') {
-    return renderOffline();
-  }
+async function handleCommand(body: APIApplicationCommandInteraction, context: HonoContext) {
+  context.set('user', body.member?.user ?? body.user);
 
   switch (body.data.name) {
     case 'fact':
       return await handleFact();
+    case 'patch-notes':
+      return await handlePatchNotes();
     case 'survey':
-      return await handleSurvey(body as APIChatInputApplicationCommandInteraction, c.env);
+      return await injectPatchNotes(
+        handleSurvey(body as APIChatInputApplicationCommandInteraction, context),
+        context,
+      );
     case 'plant':
-      return await handlePlant(body as APIChatInputApplicationCommandInteraction, c.env);
+      return await injectPatchNotes(
+        handlePlant(body as APIChatInputApplicationCommandInteraction, context),
+        context,
+      );
     case 'harvest':
-      return await handleHarvest(body as APIChatInputApplicationCommandInteraction, c.env);
+      return await injectPatchNotes(
+        handleHarvest(body as APIChatInputApplicationCommandInteraction, context),
+        context,
+      );
     case 'forage':
-      return await handleForage(body as APIChatInputApplicationCommandInteraction, c.env);
+      return await injectPatchNotes(handleForage(context), context);
     case 'inventory':
-      return await handleInventory(body as APIChatInputApplicationCommandInteraction, c.env);
+      return await injectPatchNotes(handleInventory(context), context);
     case 'give':
-      return await handleGiveChatInput(body as APIChatInputApplicationCommandInteraction, c.env);
+      return await injectPatchNotes(
+        handleGiveChatInput(body as APIChatInputApplicationCommandInteraction, context),
+        context,
+      );
     case 'Give Turnip to User':
-      return await handleGiveMessage(body as APIMessageApplicationCommandInteraction, c.env);
+      return await injectPatchNotes(
+        handleGiveMessage(body as APIMessageApplicationCommandInteraction, context),
+        context,
+      );
     case 'Give Turnip':
-      return await handleGiveUser(body as APIUserApplicationCommandInteraction, c.env);
+      return await injectPatchNotes(
+        handleGiveUser(body as APIUserApplicationCommandInteraction, context),
+        context,
+      );
     case 'Debug Message':
-      return await handleDebugMessage(body as APIMessageApplicationCommandInteraction, c);
+      return await handleDebugMessage(body as APIMessageApplicationCommandInteraction, context);
     default:
       throw new HTTPException(400);
   }
 }
 
-async function handleInteraction(body: APIInteraction, env: Context<{ Bindings: Bindings }>) {
+async function handleInteraction(body: APIInteraction, context: HonoContext) {
   const { type } = body;
 
   switch (type) {
     case InteractionType.Ping:
       return handlePing();
     case InteractionType.ApplicationCommand:
-      return await handleCommand(body, env);
+      if (context.env.KILLSWITCH === 'true') {
+        return renderOffline();
+      }
+
+      return await handleCommand(body, context);
     default:
       throw new HTTPException(400);
   }
