@@ -46,12 +46,13 @@ export function addSurveyCount(builder: EmbedBuilder, surveyCount: SurveyCount |
     let unripeCount = surveyCount.unripeTurnips.reduce((c, t) => c + t.harvestsRemaining, 0);
 
     let i: number;
-    for (i = 0; i < Math.min(surveyCount.unripeTurnips.length, 6); i++) {
+    for (i = 0; i < Math.min(surveyCount.unripeTurnips.length, 3); i++) {
       const turnip = surveyCount.unripeTurnips[i];
+      const remainingHarvestDuration = durationShort(turnip.harvestableAt - now);
       builder.addField({
-        name: `In ${durationShort(turnip.harvestableAt - now)}`,
-        value: `:seedling: x${turnip.harvestsRemaining}`,
-        inline: i !== 0,
+        name: '',
+        value: `:seedling: x${turnip.harvestsRemaining} in **${remainingHarvestDuration}**`,
+        inline: false,
       });
 
       unripeCount -= turnip.harvestsRemaining;
@@ -59,8 +60,8 @@ export function addSurveyCount(builder: EmbedBuilder, surveyCount: SurveyCount |
 
     if (unripeCount > 0) {
       builder.addField({
-        name: '+ More',
-        value: `:seedling: x${unripeCount}`,
+        name: '',
+        value: `:seedling: +${unripeCount} more`,
         inline: false,
       });
     }

@@ -20,6 +20,7 @@ import { handlePing } from '@/interactions/ping';
 import { handlePlant } from '@/interactions/plant';
 import { handleSurvey } from '@/interactions/survey';
 import { verifyKeyMiddleware } from '@/utils/hono';
+import { renderOffline } from '@/views/offline';
 
 const app = new Hono<{ Bindings: Bindings }>();
 app.use(verifyKeyMiddleware);
@@ -28,6 +29,10 @@ async function handleCommand(
   body: APIApplicationCommandInteraction,
   c: Context<{ Bindings: Bindings }>,
 ) {
+  if (c.env.KILLSWITCH === 'true') {
+    return renderOffline();
+  }
+
   switch (body.data.name) {
     case 'fact':
       return await handleFact();

@@ -1,5 +1,6 @@
 import dedent from 'dedent';
 import type { APIInteractionResponseChannelMessageWithSource } from 'discord-api-types/v10';
+import { inflect } from 'inflection';
 
 import type { SurveyCount } from '@/models/queries/guild-turnip';
 import { duration } from '@/utils/humanize';
@@ -10,8 +11,7 @@ import {
   ResponseBuilder,
   renderUnexpectedError,
 } from '@/views/base';
-import { inflect } from 'inflection';
-import { addSurveyCount } from './survey';
+import { addSurveyCount } from '@/views/survey';
 
 export function renderHarvest(
   userId: string,
@@ -45,7 +45,8 @@ export function renderHarvestOnCooldown(
     .withThumbnail(DEFAULT_THUMBNAIL_URL)
     .withDescription(
       dedent`
-        ### You already harvested recently
+        ### <@${userId}> tried to harvest some turnips
+        ...but they already harvested recently
 
         Don't be too greedy now!
       `,
@@ -68,7 +69,7 @@ export function renderNoTurnips(
     .withThumbnail(DEFAULT_THUMBNAIL_URL)
     .withDescription(
       dedent`
-        ### <@${userId}> tried to harvest some turnips.
+        ### <@${userId}> tried to harvest some turnips
 
         But there were no turnips to harvest. :(
       `,

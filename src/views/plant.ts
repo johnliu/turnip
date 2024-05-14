@@ -9,7 +9,7 @@ import {
   ResponseBuilder,
   renderUnexpectedError,
 } from '@/views/base';
-import { addSurveyCount } from './survey';
+import { addSurveyCount } from '@/views/survey';
 
 export function renderPlant(
   userId: string,
