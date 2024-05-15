@@ -11,7 +11,4 @@ declare global {
   }
 }
 
-declare module '*.png';
-declare module '*.jpg';
-
 export type {};

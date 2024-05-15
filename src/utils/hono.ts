@@ -22,6 +22,7 @@ export const verifyKeyMiddleware: MiddlewareHandler = async (c, next) => {
 
   await next();
 };
+
 export type Bindings = {
   db: D1Database;
   DISCORD_APPLICATION_ID: string;
