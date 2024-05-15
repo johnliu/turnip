@@ -1,5 +1,8 @@
 -- Migration number: 0003 	 2024-04-02T00:43:30.423Z
 
+ALTER TABLE user_turnips ADD COLUMN migrated_id TEXT;
+ALTER TABLE guild_turnips ADD COLUMN migrated_id TEXT;
+
 CREATE TABLE IF NOT EXISTS Turnip (
   id TEXT PRIMARY KEY,
   createdAt INTEGER,
@@ -43,6 +46,6 @@ CREATE TABLE IF NOT EXISTS GuildTurnip (
 );
 
 CREATE TABLE IF NOT EXISTS UserSettings (
-  id TEXT,
+  id TEXT PRIMARY KEY,
   settings TEXT
 );

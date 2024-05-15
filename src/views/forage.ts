@@ -9,6 +9,7 @@ import {
   DEFAULT_THUMBNAIL_URL,
   ERROR_EMBED_COLOR,
   ResponseBuilder,
+  SAD_THUMBNAIL_URL,
   renderUnexpectedError,
 } from '@/views/base';
 
@@ -51,7 +52,7 @@ export function renderForageOnCooldown(
     .setEphemeral()
     .addEmbed()
     .withColor(ERROR_EMBED_COLOR)
-    .withThumbnail(DEFAULT_THUMBNAIL_URL)
+    .withThumbnail(SAD_THUMBNAIL_URL)
     .withDescription(
       dedent`
         ### You already foraged recently

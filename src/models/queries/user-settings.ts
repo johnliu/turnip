@@ -4,7 +4,7 @@ import type { UserSettings } from '@/models/user-settings';
 import { batch, getOne, makeInsertOneStatement } from '@/utils/d1';
 import { MissingResultError } from '../constants';
 
-const DEFAULT_USER_SETTINGS: Omit<UserSettings, 'id'> = {
+export const DEFAULT_USER_SETTINGS: Omit<UserSettings, 'id'> = {
   patchVersion: 0,
 };
 

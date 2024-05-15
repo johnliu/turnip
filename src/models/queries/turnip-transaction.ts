@@ -1,4 +1,5 @@
-import { v1 as uuid } from 'uuid';
+import dedent from 'dedent';
+import { nanoid } from 'nanoid';
 
 import { OwnerType, USER_FORAGE_COOLDOWN_MS, USER_HARVEST_COOLDOWN_MS } from '@/models/constants';
 import type { TurnipTransaction } from '@/models/turnip-transactions';
@@ -27,7 +28,7 @@ export function prepareCreateTransactions(
   >,
 ): Statement<TurnipTransaction[]> {
   const transactions = params.turnipIds.map((turnipId) => ({
-    id: uuid(),
+    id: nanoid(),
     createdAt: params.createdAt,
     turnipId,
     senderId: params.senderId,
@@ -50,15 +51,15 @@ export function prepareGetLastHarvest(
   return {
     statement: db
       .prepare(
-        `
-      SELECT createdAt FROM TurnipTransaction
-      WHERE senderId = ?
-        AND senderType = ?
-        AND receiverId = ?
-        AND receiverType = ?
-        AND createdAt > ?
-      ORDER BY createdAt DESC
-      `,
+        dedent`
+          SELECT createdAt FROM TurnipTransaction
+          WHERE senderId = ?
+            AND senderType = ?
+            AND receiverId = ?
+            AND receiverType = ?
+            AND createdAt > ?
+          ORDER BY createdAt DESC
+        `,
       )
       .bind(
         params.guildId,
@@ -81,13 +82,13 @@ export async function getLastForage(
 ): Promise<number | null> {
   return await db
     .prepare(
-      `
-      SELECT createdAt FROM TurnipTransaction
-      WHERE senderType = ?
-        AND receiverId = ?
-        AND receiverType = ?
-        AND createdAt > ?
-      ORDER BY createdAt DESC
+      dedent`
+        SELECT createdAt FROM TurnipTransaction
+        WHERE senderType = ?
+          AND receiverId = ?
+          AND receiverType = ?
+          AND createdAt > ?
+        ORDER BY createdAt DESC
       `,
     )
     .bind(
@@ -106,10 +107,10 @@ export function prepareGetGuildPlantedCount(
   return makeOneStatement<{ guildPlantedCount: number }>(
     db
       .prepare(
-        `
-        SELECT COUNT(*) as guildPlantedCount FROM TurnipTransaction
-        WHERE receiverId = ?
-          AND receiverType = ?
+        dedent`
+          SELECT COUNT(*) as guildPlantedCount FROM TurnipTransaction
+          WHERE receiverId = ?
+            AND receiverType = ?
         `,
       )
       .bind(params.guildId, OwnerType.GUILD),
@@ -123,12 +124,12 @@ export function prepareGetUserPlantedCount(
   return makeOneStatement<{ userPlantedCount: number }>(
     db
       .prepare(
-        `
-        SELECT COUNT(*) as userPlantedCount FROM TurnipTransaction
-        WHERE receiverId = ?
-          AND receiverType = ?
-          AND senderId = ?
-          AND senderType = ?
+        dedent`
+          SELECT COUNT(*) as userPlantedCount FROM TurnipTransaction
+          WHERE receiverId = ?
+            AND receiverType = ?
+            AND senderId = ?
+            AND senderType = ?
         `,
       )
       .bind(params.guildId, OwnerType.GUILD, params.userId, OwnerType.USER),

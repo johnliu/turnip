@@ -29,6 +29,7 @@ export function renderPatchNotes() {
         - Giving or planting a turnip will now actually use a turnip.
         - There's no longer a cooldown on planting turnips -- you can plant as many turnips as you have!
         - The UI has been updated.
+        - Existing planted turnips prior to this patch will yield one turnip each.
 
         **Foraging**
         - You can now \`/forage\` for turnips in the wild once every 12 hours.

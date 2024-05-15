@@ -17,6 +17,8 @@ export const ERROR_EMBED_COLOR = 0xff4b4b;
 export const INFO_EMBED_COLOR = 0x61a6c2;
 export const DEFAULT_THUMBNAIL_URL =
   'https://cdn.discordapp.com/attachments/1239849610856628247/1239850025518108763/image.png';
+export const SAD_THUMBNAIL_URL =
+  'https://cdn.discordapp.com/attachments/1239849610856628247/1240223103754174464/image.png';
 
 export class ResponseBuilder {
   flags = 0;

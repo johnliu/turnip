@@ -40,8 +40,8 @@ beforeEach<Context>(async (context) => {
 describe.each([
   { random: 0, harvestsRemaining: 1, expectedHarvests: 1 },
   { random: 1, harvestsRemaining: 1, expectedHarvests: 1 },
-  { random: 0, harvestsRemaining: 12, expectedHarvests: 1 },
-  { random: 1, harvestsRemaining: 12, expectedHarvests: 3 },
+  { random: 0, harvestsRemaining: 12, expectedHarvests: 2 },
+  { random: 1, harvestsRemaining: 12, expectedHarvests: 5 },
 ])(
   'user harvests turnip with different randoms',
   ({ random, harvestsRemaining, expectedHarvests }) => {
@@ -173,16 +173,16 @@ describe.each([
       guildId,
       userId,
       harvestableAt: timestamp,
-      harvestsRemaining: 2,
+      harvestsRemaining: 3,
     });
     await assertGuildTurnipCount(userId, guildId, {
       guildPlantedCount: 1,
-      remainingHarvestsCount: 2,
+      remainingHarvestsCount: 3,
       unripeTurnips: [],
     });
 
     await expectOk(GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }));
-    await assertTurnipCount(userId, 1);
+    await assertTurnipCount(userId, 2);
     await assertGuildTurnipCount(userId, guildId, { remainingHarvestsCount: 1 });
 
     shiftTime(timeElapsed);
@@ -190,7 +190,7 @@ describe.each([
     const error = await expectErr(GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }));
     assert(error instanceof HarvestOnCooldownError);
     expect(error.remainingCooldown).toBe(USER_HARVEST_COOLDOWN_MS - timeElapsed);
-    await assertTurnipCount(userId, 1);
+    await assertTurnipCount(userId, 2);
     await assertGuildTurnipCount(userId, guildId, { remainingHarvestsCount: 1 });
   });
 });
@@ -206,21 +206,21 @@ test('user harvests turnip and can harvest again after cooldown', async ({
     guildId,
     userId,
     harvestableAt: timestamp,
-    harvestsRemaining: 2,
+    harvestsRemaining: 3,
   });
   await assertGuildTurnipCount(userId, guildId, {
     guildPlantedCount: 1,
-    remainingHarvestsCount: 2,
+    remainingHarvestsCount: 3,
     unripeTurnips: [],
   });
 
   await expectOk(GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }));
-  await assertTurnipCount(userId, 1);
+  await assertTurnipCount(userId, 2);
   await assertGuildTurnipCount(userId, guildId, { remainingHarvestsCount: 1 });
 
   shiftTime(USER_HARVEST_COOLDOWN_MS);
 
   await expectOk(GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }));
-  await assertTurnipCount(userId, 2);
+  await assertTurnipCount(userId, 3);
   await assertGuildTurnipCount(userId, guildId, { remainingHarvestsCount: 0 });
 });

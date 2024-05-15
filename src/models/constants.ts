@@ -49,14 +49,14 @@ export class MissingResultError extends StandardError<QueryError.MissingResult> 
   }
 }
 
-// Users can harvest between 1-3 turnips each time.
-export const USER_HARVEST_AMOUNT_RANGE = [1, 3] as const;
+// Users can harvest between 2-5 turnips each time.
+export const USER_HARVEST_AMOUNT_RANGE = [2, 5] as const;
 
 // User can harvest once every 30 minutes from the same guild.
 export const USER_HARVEST_COOLDOWN_MS = 30 * 60 * 1000;
 
-// Users can forage between 1-3 turnips each time.
-export const USER_FORAGE_AMOUNT_RANGE = [1, 3] as const;
+// Users can forage between 2-5 turnips each time.
+export const USER_FORAGE_AMOUNT_RANGE = [2, 5] as const;
 
 // User can forage once every 12 hours.
 export const USER_FORAGE_COOLDOWN_MS = 12 * 60 * 60 * 1000;

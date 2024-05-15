@@ -7,6 +7,7 @@ import {
   DEFAULT_THUMBNAIL_URL,
   type EmbedBuilder,
   ResponseBuilder,
+  SAD_THUMBNAIL_URL,
   renderUnexpectedError,
 } from '@/views/base';
 import dedent from 'dedent';
@@ -71,14 +72,13 @@ export function addSurveyCount(builder: EmbedBuilder, surveyCount: SurveyCount |
 }
 
 export function renderSurvey(surveyCount: SurveyCount) {
-  const builder = new ResponseBuilder()
-    .addEmbed()
-    .withColor(DEFAULT_EMBED_COLOR)
-    .withThumbnail(DEFAULT_THUMBNAIL_URL);
+  const builder = new ResponseBuilder().addEmbed().withColor(DEFAULT_EMBED_COLOR);
 
   let description = '';
+  let thumbnail = DEFAULT_THUMBNAIL_URL;
   if (surveyCount.guildPlantedCount === 0) {
     description = "It's pretty barren. You should plant some turnips here.";
+    thumbnail = SAD_THUMBNAIL_URL;
   } else if (surveyCount.guildPlantedCount === surveyCount.userPlantedCount) {
     description = 'You planted all the turnips here. Get some friends to help!';
   } else if (surveyCount.userPlantedCount / surveyCount.guildPlantedCount > 0.5) {
@@ -87,6 +87,7 @@ export function renderSurvey(surveyCount: SurveyCount) {
 
   addSurveyCount(builder, surveyCount);
   return builder
+    .withThumbnail(thumbnail)
     .withDescription(
       dedent`
       ### Turnip Crop

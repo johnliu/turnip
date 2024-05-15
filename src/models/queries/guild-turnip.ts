@@ -1,3 +1,4 @@
+import dedent from 'dedent';
 import { type Result, err, ok } from 'neverthrow';
 
 import {
@@ -82,11 +83,11 @@ export function prepareGetRemainingHarvestsCount(
   return makeOneStatement<{ remainingHarvestsCount: number }>(
     db
       .prepare(
-        `
-        SELECT COALESCE(SUM(harvestsRemaining), 0) as remainingHarvestsCount FROM GuildTurnip
-        WHERE guildId = ?
-          AND harvestableAt <= ?
-          AND harvestsRemaining > ?
+        dedent`
+          SELECT COALESCE(SUM(harvestsRemaining), 0) as remainingHarvestsCount FROM GuildTurnip
+          WHERE guildId = ?
+            AND harvestableAt <= ?
+            AND harvestsRemaining > ?
         `,
       )
       .bind(params.guildId, params.timestamp, 0),
@@ -103,12 +104,12 @@ export function prepareGetUnripeTurnips(
   return makeManyStatement<GuildTurnip>(
     db
       .prepare(
-        `
-        SELECT * FROM GuildTurnip
-        WHERE guildId = ?
-          AND harvestableAt > ?
-          AND harvestsRemaining > ?
-        ORDER BY harvestableAt ASC
+        dedent`
+          SELECT * FROM GuildTurnip
+          WHERE guildId = ?
+            AND harvestableAt > ?
+            AND harvestsRemaining > ?
+          ORDER BY harvestableAt ASC
         `,
       )
       .bind(params.guildId, params.timestamp, 0),
@@ -211,13 +212,13 @@ function prepareGetHarvestableTurnip(
   return makeOneStatement<GuildTurnip>(
     db
       .prepare(
-        `
-        SELECT * FROM GuildTurnip
-        WHERE guildId = ?
-          AND harvestableAt <= ?
-          AND harvestsRemaining > ?
-        ORDER BY harvestableAt ASC
-        LIMIT 1
+        dedent`
+          SELECT * FROM GuildTurnip
+          WHERE guildId = ?
+            AND harvestableAt <= ?
+            AND harvestsRemaining > ?
+          ORDER BY harvestableAt ASC
+          LIMIT 1
         `,
       )
       .bind(params.guildId, params.timestamp, 0),
@@ -262,14 +263,14 @@ export async function harvestTurnips(
     makeOneStatement<GuildTurnip>(
       db
         .prepare(
-          `
-          UPDATE GuildTurnip
-          SET harvestsRemaining = harvestsRemaining - ?
-          WHERE guildId = ?
-            AND turnipId = ?
-            AND harvestsRemaining = ?
-          RETURNING *
-          LIMIT 1
+          dedent`
+            UPDATE GuildTurnip
+            SET harvestsRemaining = harvestsRemaining - ?
+            WHERE guildId = ?
+              AND turnipId = ?
+              AND harvestsRemaining = ?
+            RETURNING *
+            LIMIT 1
           `,
         )
         .bind(

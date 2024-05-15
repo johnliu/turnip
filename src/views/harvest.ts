@@ -9,6 +9,7 @@ import {
   DEFAULT_THUMBNAIL_URL,
   ERROR_EMBED_COLOR,
   ResponseBuilder,
+  SAD_THUMBNAIL_URL,
   renderUnexpectedError,
 } from '@/views/base';
 import { addSurveyCount } from '@/views/survey';
@@ -42,7 +43,7 @@ export function renderHarvestOnCooldown(
   const builder = new ResponseBuilder()
     .addEmbed()
     .withColor(ERROR_EMBED_COLOR)
-    .withThumbnail(DEFAULT_THUMBNAIL_URL)
+    .withThumbnail(SAD_THUMBNAIL_URL)
     .withDescription(
       dedent`
         ### <@${userId}> tried to harvest some turnips
@@ -66,7 +67,7 @@ export function renderNoTurnips(
   const builder = new ResponseBuilder()
     .addEmbed()
     .withColor(ERROR_EMBED_COLOR)
-    .withThumbnail(DEFAULT_THUMBNAIL_URL)
+    .withThumbnail(SAD_THUMBNAIL_URL)
     .withDescription(
       dedent`
         ### <@${userId}> tried to harvest some turnips

@@ -1,5 +1,6 @@
+import dedent from 'dedent';
+import { nanoid } from 'nanoid';
 import { type Result, err, ok } from 'neverthrow';
-import { v1 as uuid } from 'uuid';
 
 import {
   ForageOnCooldownError,
@@ -43,17 +44,17 @@ export function prepareMoveTurnip(
     makeOneStatement<Turnip>(
       db
         .prepare(
-          `
-          UPDATE Turnip
-          SET ownerId = ?,
-              ownerType = ?,
-              ownedAt = ?
-          WHERE id = ?
-            AND ownerId = ?
-            AND ownerType = ?
-          RETURNING *
-          ORDER BY ownedAt ASC
-          LIMIT 1
+          dedent`
+            UPDATE Turnip
+            SET ownerId = ?,
+                ownerType = ?,
+                ownedAt = ?
+            WHERE id = ?
+              AND ownerId = ?
+              AND ownerType = ?
+            RETURNING *
+            ORDER BY ownedAt ASC
+            LIMIT 1
           `,
         )
         .bind(
@@ -66,7 +67,7 @@ export function prepareMoveTurnip(
         ),
     ),
     prepareCreateTransaction(db, {
-      id: uuid(),
+      id: nanoid(),
       createdAt: params.timestamp,
       turnipId: params.turnipId,
       senderId: params.senderId,
@@ -84,7 +85,7 @@ export function prepareCreateTurnips(
   } & Pick<Turnip, 'createdAt' | 'originId' | 'originType' | 'parentId' | 'ownerId' | 'ownerType'>,
 ): Statements<[Turnip[], TurnipTransaction[]]> {
   const turnips: Turnip[] = [...Array(params.count)].map((_) => ({
-    id: uuid(),
+    id: nanoid(),
     type: TurnipType.STANDARD,
     createdAt: params.createdAt,
     originId: params.originId,
@@ -165,13 +166,13 @@ export async function getTurnipInventory(
 ): Promise<TurnipCount[]> {
   const results = await db
     .prepare(
-      `
-      SELECT type, COUNT(*) AS count
-      FROM Turnip
-      WHERE ownerId = ?
-        AND ownerType = ?
-      GROUP BY type
-      ORDER BY type
+      dedent`
+        SELECT type, COUNT(*) AS count
+        FROM Turnip
+        WHERE ownerId = ?
+          AND ownerType = ?
+        GROUP BY type
+        ORDER BY type
       `,
     )
     .bind(params.userId, OwnerType.USER)

@@ -4,7 +4,7 @@ import { getUserSettings, saveUserSettings } from '@/models/queries/user-setting
 import type { HonoContext } from '@/utils/hono';
 import { injectPatchShort, renderPatchNotes } from '@/views/patch-notes';
 
-const CURRENT_PATCH_VERSION = 1;
+const CURRENT_PATCH_VERSION = 2;
 
 export function handlePatchNotes(): APIInteractionResponseChannelMessageWithSource {
   return renderPatchNotes();
@@ -25,7 +25,11 @@ export async function injectPatchNotes(
       ...settings,
       patchVersion: CURRENT_PATCH_VERSION,
     });
-    return injectPatchShort(await response);
+
+    // Verison 0 is a new player so don't notify them.
+    if (settings.patchVersion !== 0) {
+      return injectPatchShort(await response);
+    }
   }
 
   return await response;

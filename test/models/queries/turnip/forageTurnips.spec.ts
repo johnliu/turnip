@@ -32,8 +32,8 @@ beforeEach<Context>(async (context) => {
 });
 
 describe.each([
-  { random: 0, turnipCount: 1 },
-  { random: 1, turnipCount: 3 },
+  { random: 0, turnipCount: 2 },
+  { random: 1, turnipCount: 5 },
 ])('user forages with random $random value', ({ random, turnipCount }) => {
   test(`user forages ${turnipCount} turnips`, async ({ userId, timestamp }) => {
     mockRandom(random);
@@ -73,14 +73,14 @@ describe.each([
     mockRandom(0);
 
     await expectOk(TurnipQueries.forageTurnips(env.db, { userId }));
-    await assertTurnipCount(userId, 1);
+    await assertTurnipCount(userId, 2);
 
     shiftTime(timeElapsed);
 
     const error = await expectErr(TurnipQueries.forageTurnips(env.db, { userId }));
     assert(error instanceof ForageOnCooldownError);
     expect(error.remainingCooldown).toBe(USER_FORAGE_COOLDOWN_MS - timeElapsed);
-    await assertTurnipCount(userId, 1);
+    await assertTurnipCount(userId, 2);
   });
 });
 
@@ -88,10 +88,10 @@ test('user forages and can forage again after cooldown', async ({ userId }) => {
   mockRandom(0);
 
   await expectOk(TurnipQueries.forageTurnips(env.db, { userId }));
-  await assertTurnipCount(userId, 1);
+  await assertTurnipCount(userId, 2);
 
   shiftTime(USER_FORAGE_COOLDOWN_MS);
 
   await expectOk(TurnipQueries.forageTurnips(env.db, { userId }));
-  await assertTurnipCount(userId, 2);
+  await assertTurnipCount(userId, 4);
 });

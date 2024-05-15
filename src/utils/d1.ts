@@ -1,3 +1,5 @@
+import dedent from 'dedent';
+
 import { first } from '@/utils/arrays';
 
 export type Statement<T> = {
@@ -60,13 +62,13 @@ export function makeInsertManyStatement<T extends object>(
   return {
     statement: db
       .prepare(
-        `
-        INSERT INTO ${table} (
-          ${fields.join(', ')}
-        )
-        VALUES
-        ${models.map((_) => `(${fields.map((_) => '?').join(', ')})`).join(', \n')}
-        RETURNING *
+        dedent`
+          INSERT INTO ${table} (
+            ${fields.join(', ')}
+          )
+          VALUES
+          ${models.map((_) => `(${fields.map((_) => '?').join(', ')})`).join(', \n')}
+          RETURNING *
         `,
       )
       .bind(...models.flatMap((m) => fields.map((f) => m[f]))),
@@ -102,12 +104,12 @@ export async function getMany<T extends object>(
 ): Promise<T[] | null | undefined> {
   const result = await db
     .prepare(
-      `
-      SELECT * FROM ${table}
-      WHERE ${Object.keys(where)
-        .map((k) => `${k} = ?`)
-        .join(' AND ')}
-      ${limit != null ? `LIMIT ${limit}` : ''}
+      dedent`
+        SELECT * FROM ${table}
+        WHERE ${Object.keys(where)
+          .map((k) => `${k} = ?`)
+          .join(' AND ')}
+        ${limit != null ? `LIMIT ${limit}` : ''}
       `,
     )
     .bind(...Object.values(where))

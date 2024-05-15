@@ -7,6 +7,7 @@ import {
   DEFAULT_THUMBNAIL_URL,
   ERROR_EMBED_COLOR,
   ResponseBuilder,
+  SAD_THUMBNAIL_URL,
   renderUnexpectedError,
 } from '@/views/base';
 import { addSurveyCount } from '@/views/survey';
@@ -53,7 +54,7 @@ export function renderNoTurnips(userId: string): APIInteractionResponseChannelMe
   return new ResponseBuilder()
     .addEmbed()
     .withColor(ERROR_EMBED_COLOR)
-    .withThumbnail(DEFAULT_THUMBNAIL_URL)
+    .withThumbnail(SAD_THUMBNAIL_URL)
     .withDescription(
       dedent`
         ### <@${userId}> tried to plant a turnip

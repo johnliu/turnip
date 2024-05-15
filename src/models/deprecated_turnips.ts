@@ -1,5 +1,4 @@
 import type { D1Database } from '@cloudflare/workers-types';
-import { v1 as uuid } from 'uuid';
 
 export const MAX_COUNTABLE_TURNIPS = 1000;
 export const HARVEST_TIME = 1000 * 60 * 60 * 2;
@@ -40,15 +39,6 @@ export const UserTurnipQueries = {
           'INSERT INTO user_turnips (user_id, collected_at_ms, source_type, source_id) VALUES(?1, ?2, ?3, ?4)',
         )
         .bind(receiverId, now, SourceType.USER, senderId),
-      db
-        .prepare(
-          `INSERT INTO turnips (
-            id, created_at_ms, type, origin_type, origin_id, parent_id, owner_type, owner_id, owned_at_ms
-          ) VALUES (
-            ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9
-          )`,
-        )
-        .bind(uuid({ msecs: now }), now),
     ];
 
     const statement = db.prepare(

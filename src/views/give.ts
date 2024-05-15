@@ -6,6 +6,7 @@ import {
   DEFAULT_THUMBNAIL_URL,
   ERROR_EMBED_COLOR,
   ResponseBuilder,
+  SAD_THUMBNAIL_URL,
   renderUnexpectedError,
 } from '@/views/base';
 
@@ -52,7 +53,7 @@ export function renderGiveSelf(senderId: string): APIInteractionResponseChannelM
   return new ResponseBuilder()
     .addEmbed()
     .withColor(ERROR_EMBED_COLOR)
-    .withThumbnail(DEFAULT_THUMBNAIL_URL)
+    .withThumbnail(SAD_THUMBNAIL_URL)
     .withDescription(
       dedent`
         ### <@${senderId}> gave themselves a turnip.
@@ -75,7 +76,7 @@ export function renderNoTurnips(
     .setMessage(`||<@${receiverId}>||`)
     .addEmbed()
     .withColor(ERROR_EMBED_COLOR)
-    .withThumbnail(DEFAULT_THUMBNAIL_URL)
+    .withThumbnail(SAD_THUMBNAIL_URL)
     .withDescription(
       dedent`
         ### <@${senderId}> tried to give you a turnip <@${receiverId}>

@@ -24,8 +24,8 @@
     "hono": "^4.1.2",
     "humanize-duration": "^3.31.0",
     "inflection": "^3.0.0",
-    "neverthrow": "^6.2.1",
-    "uuid": "^9.0.1"
+    "nanoid": "^5.0.7",
+    "neverthrow": "^6.2.1"
   },
   "scripts": {
     "deploy": "bun wrangler deploy",

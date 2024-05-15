@@ -3,7 +3,12 @@ import type { APIInteractionResponseChannelMessageWithSource } from 'discord-api
 import { inflect } from 'inflection';
 
 import type { TurnipCount } from '@/models/queries/turnip';
-import { DEFAULT_EMBED_COLOR, DEFAULT_THUMBNAIL_URL, ResponseBuilder } from '@/views/base';
+import {
+  DEFAULT_EMBED_COLOR,
+  DEFAULT_THUMBNAIL_URL,
+  ResponseBuilder,
+  SAD_THUMBNAIL_URL,
+} from '@/views/base';
 
 export function renderInventory(
   userId: string,
@@ -11,10 +16,7 @@ export function renderInventory(
 ): APIInteractionResponseChannelMessageWithSource {
   const total = turnipCounts.reduce((total, count) => total + count.count, 0);
 
-  const builder = new ResponseBuilder()
-    .addEmbed()
-    .withColor(DEFAULT_EMBED_COLOR)
-    .withThumbnail(DEFAULT_THUMBNAIL_URL);
+  const builder = new ResponseBuilder().addEmbed().withColor(DEFAULT_EMBED_COLOR);
 
   const header = `### <@${userId}>'s Inventory`;
 
@@ -22,7 +24,7 @@ export function renderInventory(
     builder.withFooter('Try foraging or harvesting for some turnips.');
 
     if (total === 0) {
-      builder.withDescription(
+      builder.withThumbnail(SAD_THUMBNAIL_URL).withDescription(
         dedent`
           ${header}
 
@@ -32,7 +34,7 @@ export function renderInventory(
     }
 
     if (total === 1) {
-      builder.withDescription(
+      builder.withThumbnail(DEFAULT_THUMBNAIL_URL).withDescription(
         dedent`
           ${header}
 
@@ -41,7 +43,7 @@ export function renderInventory(
       );
     }
   } else {
-    builder.withDescription(
+    builder.withThumbnail(DEFAULT_THUMBNAIL_URL).withDescription(
       dedent`
         ${header}
 

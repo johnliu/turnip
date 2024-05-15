@@ -1,6 +1,7 @@
 import { parseArgs } from 'node:util';
 import { generateConfigs } from '@/scripts/generate-configs';
 import { tunnel, tunnelUrl } from '@/scripts/local-tunnel';
+import { migration } from '@/scripts/migrations';
 import { updateApplication } from '@/scripts/update-application';
 import { updateCommands } from '@/scripts/update-commands';
 
@@ -24,6 +25,10 @@ switch (positionals[0]) {
   }
   case 'tunnel-url': {
     tunnelUrl();
+    break;
+  }
+  case 'migrations': {
+    migration(positionals[1]);
     break;
   }
   default:
