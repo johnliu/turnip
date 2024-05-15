@@ -1,7 +1,8 @@
+import dedent from 'dedent';
 import { type Result, err, ok } from 'neverthrow';
 
 import type { UserSettings } from '@/models/user-settings';
-import { batch, getOne, makeInsertOneStatement } from '@/utils/d1';
+import { getOne } from '@/utils/d1';
 import { MissingResultError } from '../constants';
 
 export const DEFAULT_USER_SETTINGS: Omit<UserSettings, 'id'> = {
@@ -37,16 +38,25 @@ export async function saveUserSettings(
   userSettings: UserSettings,
 ): Promise<Result<UserSettings, MissingResultError>> {
   const { id, ...settings } = userSettings;
-  const [serializedUserSettings] = await batch(db, [
-    makeInsertOneStatement<SerializedUserSettings>(db, 'UserSettings', {
-      id,
-      settings: JSON.stringify(settings),
-    }),
-  ]);
+  const query = db
+    .prepare(
+      dedent`
+      INSERT OR REPLACE INTO UserSettings (
+        id, settings
+      )
+      VALUES (
+        ?, ?
+      )
+      RETURNING *
+    `,
+    )
+    .bind(id, JSON.stringify(settings));
 
+  const serializedUserSettings = await query.first<SerializedUserSettings>();
   if (serializedUserSettings == null) {
     return err(new MissingResultError('saveUserSettings'));
   }
+
   return ok({
     id: serializedUserSettings.id,
     ...DEFAULT_USER_SETTINGS,
