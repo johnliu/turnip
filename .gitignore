@@ -179,6 +179,6 @@ dist
 
 # Wrangler
 wrangler.toml
-secrets.json
 .dev.vars
 .wrangler/
+.cloudflared/

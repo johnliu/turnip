@@ -4,14 +4,15 @@
     "lib": ["ESNext"],
     "target": "ESNext",
     "module": "ESNext",
-    "types": ["@cloudflare/workers-types", "bun-types"],
+    "types": ["@cloudflare/workers-types", "@cloudflare/vitest-pool-workers", "bun-types"],
     "moduleDetection": "force",
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "allowJs": true,
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["src/*"],
+      "@test/*": ["test/*"]
     },
 
     // Bundler mode

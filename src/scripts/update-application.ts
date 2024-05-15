@@ -1,6 +1,11 @@
 import fs from 'node:fs/promises';
 import { env } from 'node:process';
-import { type APIApplication, type APIApplicationInstallParams, OAuth2Scopes, Routes } from 'discord-api-types/v10';
+import {
+  type APIApplication,
+  type APIApplicationInstallParams,
+  OAuth2Scopes,
+  Routes,
+} from 'discord-api-types/v10';
 
 import { ApplicationIntegrationType } from '@/constants';
 import { request } from '@/scripts/lib';

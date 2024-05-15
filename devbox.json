@@ -1,9 +1,13 @@
 {
-  "packages": ["lefthook@latest", "cloudflared@latest", "bun@latest", "nodejs@latest"],
+  "packages": ["lefthook@latest", "cloudflared@latest", "bun@latest", "nodejs@latest", "jq@latest"],
   "env": {
     "DO_NOT_TRACK": "1"
   },
   "shell": {
-    "init_hook": ["set -a && . \"$DEVBOX_PROJECT_ROOT/.env\" && set +a", "lefthook install", "bun install"]
+    "init_hook": [
+      "set -a && . \"$DEVBOX_PROJECT_ROOT/.env\" && set +a",
+      "lefthook install",
+      "bun install"
+    ]
   }
 }

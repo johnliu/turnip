@@ -1,23 +1,31 @@
-const TEMPLATE_DEV_VARS = `\
-DISCORD_APPLICATION_ID=${Bun.env.DISCORD_APPLICATION_ID}
-DISCORD_PUBLIC_KEY=${Bun.env.DISCORD_PUBLIC_KEY}
-DISCORD_BOT_TOKEN=${Bun.env.DISCORD_BOT_TOKEN}
+import dedent from 'dedent';
+
+const TEMPLATE_DEV_VARS = dedent`\
+  DISCORD_APPLICATION_ID=${Bun.env.DISCORD_APPLICATION_ID}
+  DISCORD_PUBLIC_KEY=${Bun.env.DISCORD_PUBLIC_KEY}
+  DISCORD_BOT_TOKEN=${Bun.env.DISCORD_BOT_TOKEN}
+  KILLSWITCH=${Bun.env.KILLSWITCH}
 `;
 
-const TEMPLATE_WRANGLER_TOML = `\
-name = "turnip"
-main = "src/index.ts"
-compatibility_date = "2024-03-14"
-compatibility_flags = ["nodejs_compat"]
+const TEMPLATE_WRANGLER_TOML = dedent`\
+  # DO NOT EDIT: this file is auto-generated regenerate via: \`bun scripts generate-configs\`
 
+  name = "turnip"
+  main = "src/index.ts"
+  compatibility_date = "2024-03-14"
+  compatibility_flags = ["nodejs_compat"]
 
-[dev]
-port = 3000
+  rules = [
+    { type = "Data", globs = ["**/*.jpg", "**/*.png"], fallthrough = true }
+  ]
 
-[[d1_databases]]
-binding = "db"
-database_name = "turnip"
-database_id = "${Bun.env.CLOUDFLARE_D1_ID}"
+  [dev]
+  port = 3000
+
+  [[d1_databases]]
+  binding = "db"
+  database_name = "turnip"
+  database_id = "${Bun.env.CLOUDFLARE_D1_ID}"
 `;
 
 export async function generateConfigs() {
