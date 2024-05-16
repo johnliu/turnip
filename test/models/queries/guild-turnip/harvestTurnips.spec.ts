@@ -87,6 +87,41 @@ describe.each([
   },
 );
 
+test('user harvests turnips, rolls over', async ({ userId, guildId, timestamp }) => {
+  mockRandom(1);
+
+  const harvestableTurnips = [];
+  for (let i = 0; i < 6; i++) {
+    const { guildTurnip } = await seedGuildTurnip({
+      guildId,
+      userId,
+      harvestableAt: timestamp,
+      harvestsRemaining: 1,
+    });
+
+    harvestableTurnips.push(guildTurnip);
+  }
+
+  expect(harvestableTurnips).toHaveLength(6);
+  await assertGuildTurnipCount(userId, guildId, {
+    guildPlantedCount: 6,
+    remainingHarvestsCount: 6,
+    unripeTurnips: [],
+  });
+
+  const { guildTurnips, harvestedTurnips } = await expectOk(
+    GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }),
+  );
+  expect(guildTurnips).toHaveLength(5);
+  expect(harvestedTurnips).toHaveLength(5);
+  await assertTurnipCount(userId, 5);
+  await assertGuildTurnipCount(userId, guildId, {
+    guildPlantedCount: 6,
+    remainingHarvestsCount: 1,
+    unripeTurnips: [],
+  });
+});
+
 test('user harvests oldest turnip', async ({ userId, guildId, timestamp }) => {
   mockRandom(0);
 
@@ -94,7 +129,7 @@ test('user harvests oldest turnip', async ({ userId, guildId, timestamp }) => {
     guildId,
     userId,
     harvestableAt: timestamp,
-    harvestsRemaining: 1,
+    harvestsRemaining: 2,
   });
 
   const nextTimestamp = shiftTime(10);
@@ -108,15 +143,16 @@ test('user harvests oldest turnip', async ({ userId, guildId, timestamp }) => {
 
   await assertGuildTurnipCount(userId, guildId, {
     guildPlantedCount: 2,
-    remainingHarvestsCount: 2,
+    remainingHarvestsCount: 3,
     unripeTurnips: [],
   });
 
-  const { guildTurnip } = await expectOk(
+  const { guildTurnips } = await expectOk(
     GuildTurnipQueries.harvestTurnips(env.db, { userId, guildId }),
   );
-  await assertTurnipCount(userId, 1);
-  expect(guildTurnip.turnipId).toBe(oldestGuildTurnip.turnipId);
+  await assertTurnipCount(userId, 2);
+  expect(guildTurnips).toHaveLength(1);
+  expect(guildTurnips[0].turnipId).toBe(oldestGuildTurnip.turnipId);
 });
 
 test('user harvests turnip but no more harvests', async ({ userId, guildId, timestamp }) => {

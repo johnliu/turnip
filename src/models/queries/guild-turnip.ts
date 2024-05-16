@@ -208,8 +208,8 @@ export async function plantTurnip(
 function prepareGetHarvestableTurnip(
   db: D1Database,
   params: { timestamp: number; guildId: string },
-): Statement<GuildTurnip> {
-  return makeOneStatement<GuildTurnip>(
+): Statement<GuildTurnip[]> {
+  return makeManyStatement<GuildTurnip>(
     db
       .prepare(
         dedent`
@@ -218,48 +218,23 @@ function prepareGetHarvestableTurnip(
             AND harvestableAt <= ?
             AND harvestsRemaining > ?
           ORDER BY harvestableAt ASC
-          LIMIT 1
+          LIMIT 5
         `,
       )
       .bind(params.guildId, params.timestamp, 0),
   );
 }
 
-export async function harvestTurnips(
+export function prepareHarvestTurnips(
   db: D1Database,
   params: {
+    guildTurnip: GuildTurnip;
     userId: string;
-    guildId: string;
+    harvests: number;
+    ts: number;
   },
-): Promise<
-  Result<
-    { guildTurnip: GuildTurnip; harvestedTurnips: Turnip[] },
-    StandardError<QueryError.NoTurnipsError> | HarvestOnCooldownError | MissingResultError
-  >
-> {
-  const now = new Date().getTime();
-
-  const [harvestableTurnip, lastHarvestedTimestamp] = await batch<[GuildTurnip, number]>(db, [
-    prepareGetHarvestableTurnip(db, { timestamp: now, guildId: params.guildId }),
-    prepareGetLastHarvest(db, { timestamp: now, userId: params.userId, guildId: params.guildId }),
-  ]);
-
-  if (harvestableTurnip == null) {
-    return err(new StandardError(QueryError.NoTurnipsError));
-  }
-
-  if (lastHarvestedTimestamp != null) {
-    return err(new HarvestOnCooldownError(lastHarvestedTimestamp + USER_HARVEST_COOLDOWN_MS - now));
-  }
-
-  const harvests = Math.min(
-    randomRange(...USER_HARVEST_AMOUNT_RANGE),
-    harvestableTurnip.harvestsRemaining,
-  );
-
-  const [guildTurnip, harvestedTurnips, _] = await batch<
-    [GuildTurnip, Turnip[], TurnipTransaction[]]
-  >(db, [
+): Statements<[GuildTurnip, Turnip[], TurnipTransaction[]]> {
+  return [
     makeOneStatement<GuildTurnip>(
       db
         .prepare(
@@ -274,29 +249,83 @@ export async function harvestTurnips(
           `,
         )
         .bind(
-          harvests,
-          params.guildId,
-          harvestableTurnip.turnipId,
-          harvestableTurnip.harvestsRemaining,
+          params.harvests,
+          params.guildTurnip.guildId,
+          params.guildTurnip.turnipId,
+          params.guildTurnip.harvestsRemaining,
         ),
     ),
     ...prepareCreateTurnips(db, {
-      count: harvests,
-      createdAt: now,
-      originId: params.guildId,
+      count: params.harvests,
+      createdAt: params.ts,
+      originId: params.guildTurnip.guildId,
       originType: OriginType.HARVEST,
-      parentId: harvestableTurnip.turnipId,
+      parentId: params.guildTurnip.turnipId,
       ownerId: params.userId,
       ownerType: OwnerType.USER,
     }),
+  ];
+}
+
+export async function harvestTurnips(
+  db: D1Database,
+  params: {
+    userId: string;
+    guildId: string;
+  },
+): Promise<
+  Result<
+    { guildTurnips: GuildTurnip[]; harvestedTurnips: Turnip[] },
+    StandardError<QueryError.NoTurnipsError> | HarvestOnCooldownError | MissingResultError
+  >
+> {
+  const now = new Date().getTime();
+
+  const [harvestableTurnips, lastHarvestedTimestamp] = await batch<[GuildTurnip[], number]>(db, [
+    prepareGetHarvestableTurnip(db, { timestamp: now, guildId: params.guildId }),
+    prepareGetLastHarvest(db, { timestamp: now, userId: params.userId, guildId: params.guildId }),
   ]);
 
-  if (guildTurnip == null || harvestedTurnips == null) {
-    return err(new MissingResultError('harvestTurnips'));
+  if (harvestableTurnips == null || harvestableTurnips.length === 0) {
+    return err(new StandardError(QueryError.NoTurnipsError));
+  }
+
+  if (lastHarvestedTimestamp != null) {
+    return err(new HarvestOnCooldownError(lastHarvestedTimestamp + USER_HARVEST_COOLDOWN_MS - now));
+  }
+
+  let harvests = Math.min(
+    randomRange(...USER_HARVEST_AMOUNT_RANGE),
+    harvestableTurnips.reduce((total, guildTurnip) => total + guildTurnip.harvestsRemaining, 0),
+  );
+
+  const guildTurnips: GuildTurnip[] = [];
+  const harvestedTurnips: Turnip[] = [];
+  for (const harvestableTurnip of harvestableTurnips) {
+    if (harvests === 0) {
+      break;
+    }
+
+    const currentHarvest = Math.min(harvests, harvestableTurnip.harvestsRemaining);
+    const [guildTurnip, turnips, _] = await batch<[GuildTurnip, Turnip[], TurnipTransaction[]]>(
+      db,
+      prepareHarvestTurnips(db, {
+        guildTurnip: harvestableTurnip,
+        userId: params.userId,
+        harvests: currentHarvest,
+        ts: now,
+      }),
+    );
+
+    if (guildTurnip != null && turnips != null) {
+      harvests -= harvestableTurnip.harvestsRemaining - guildTurnip.harvestsRemaining;
+      guildTurnips.push(guildTurnip);
+      harvestedTurnips.push(...turnips);
+    }
   }
 
   return ok({
-    guildTurnip,
+    guildTurnips,
     harvestedTurnips,
   });
 }

@@ -11,7 +11,7 @@ async function getConfig(): Promise<{
   if (await fs.exists('.cloudflared')) {
     const config = YAML.parse(await Bun.file('.cloudflared/config.yml').text());
     const tunnelId = config.tunnel;
-    const hostname = config.ingress[0].hostname;
+    const hostname = `https://${config.ingress[0].hostname}`;
 
     return {
       tunnelId,

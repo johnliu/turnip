@@ -1,5 +1,4 @@
 import fs from 'node:fs/promises';
-import { env } from 'node:process';
 import {
   type APIApplication,
   type APIApplicationInstallParams,
@@ -20,11 +19,11 @@ type RESTPatchAPIApplication = Partial<APIApplication> &
   }>;
 
 export async function updateApplication(interactions_endpoint_url?: string) {
-  const imageBytes = await fs.readFile(`${env.DEVBOX_PROJECT_ROOT}/assets/icon.png`);
+  const imageBytes = await fs.readFile(`${Bun.env.DEVBOX_PROJECT_ROOT}/assets/icon.png`);
   const imageDataUri = `data:image/png;base64,${imageBytes.toString('base64')}`;
 
   const payload: RESTPatchAPIApplication = {
-    name: env.ENV === 'staging' ? 'Turnip Staging' : 'Turnip',
+    name: Bun.env.ENV === 'staging' ? 'Turnip Staging' : 'Turnip',
     description: 'Fun facts about turnips',
     tags: ['turnips', 'fun', 'facts'],
     icon: imageDataUri,
