@@ -23,7 +23,11 @@ export function renderPatchNotes() {
     .withColor(INFO_EMBED_COLOR)
     .withDescription(
       dedent`
-        ### 🆕 Turnip 1.0.0 Patch Notes
+        ### :new: Turnip 1.0.1 Patch Notes
+        - Changed harvesting behaviour slightly so you can harvest from multiple planted turnips.
+          On average you'll get more turnips from each harvest.
+
+        ### Turnip 1.0.0 Patch Notes
 
         **General Changes**
         - Giving or planting a turnip will now actually use a turnip.
