@@ -8,7 +8,7 @@ export function injectPatchShort(
   response.data.embeds = [
     new EmbedBuilder()
       .withColor(INFO_EMBED_COLOR)
-      .withDescription(':new: Turnip 1.0.0 is here. See `/patch-notes` for details.')
+      .withDescription(':new: Turnip 1.0.1 is here. See `/patch-notes` for details.')
       .build(),
     ...(response.data.embeds ?? []),
   ];
@@ -24,8 +24,7 @@ export function renderPatchNotes() {
     .withDescription(
       dedent`
         ### :new: Turnip 1.0.1 Patch Notes
-        - Changed harvesting behaviour slightly so you can harvest from multiple planted turnips.
-          On average you'll get more turnips from each harvest.
+        - Changed harvesting behaviour slightly so you can harvest from multiple planted turnips. On average you'll get more turnips from each harvest.
 
         ### Turnip 1.0.0 Patch Notes
 
