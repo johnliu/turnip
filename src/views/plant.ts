@@ -59,7 +59,7 @@ export function renderNoTurnips(userId: string): APIInteractionResponseChannelMe
       dedent`
         ### <@${userId}> tried to plant a turnip
 
-        Silly <@${userId}>, you plant turnips out of thin air!
+        Silly <@${userId}>, you can't plant turnips out of thin air!
       `,
     )
     .withFooter('Try foraging or harvesting for some turnips first.')
